@@ -6,12 +6,12 @@ import PetAvatar from './PetAvatar'
 import Button from './Button'
 
 const OPTIONS = [
-  { label: 'Review and complete' },
+  { label: 'Review and complete', actionKey: 'review' },
   { label: 'Go to conversation with Owen', actionKey: 'conversation' },
   { label: 'Reschedule walk' },
 ]
 
-export default function ActionSheet({ visible, onClose, onGoToConversation }) {
+export default function ActionSheet({ visible, onClose, onGoToConversation, onReviewAndComplete }) {
   if (!visible) return null
 
   return (
@@ -46,7 +46,7 @@ export default function ActionSheet({ visible, onClose, onGoToConversation }) {
         {OPTIONS.map((item, i) => (
           <div
             key={i}
-            onClick={item.actionKey === 'conversation' ? onGoToConversation : undefined}
+            onClick={item.actionKey === 'conversation' ? onGoToConversation : item.actionKey === 'review' ? onReviewAndComplete : undefined}
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
               padding: '16px 0',

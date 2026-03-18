@@ -1,11 +1,12 @@
 import React from 'react'
-import { colors, radius, typography } from '../tokens'
+import { colors, radius, typography, shadows } from '../tokens'
 
 const VARIANTS = {
   default: { background: colors.white, borderColor: colors.borderInteractive, color: colors.secondary },
   primary: { background: colors.link, borderColor: colors.link, color: colors.white },
   flat: { background: 'transparent', borderColor: 'transparent', color: colors.link },
   disabled: { background: colors.disabledBg, borderColor: colors.disabledBorder, color: colors.disabledText },
+  destructive: { background: '#BC4338', borderColor: '#BC4338', color: colors.white, boxShadow: shadows.medium },
 }
 
 export default function Button({ children, variant = 'default', disabled = false, fullWidth = false, onClick, icon, style = {} }) {

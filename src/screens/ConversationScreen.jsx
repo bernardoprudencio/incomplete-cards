@@ -4,7 +4,7 @@ import { BackIcon, MoreIcon, ImageIcon } from '../assets/icons'
 import { peopleImages } from '../assets/images'
 import { Button, PetAvatar, BannerBlock, ChatBubble } from '../components'
 
-export default function ConversationScreen({ onBack }) {
+export default function ConversationScreen({ onBack, resolution, resolutionTimestamp }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: colors.white }}>
       {/* ─── Header ─── */}
@@ -45,7 +45,15 @@ export default function ConversationScreen({ onBack }) {
         <div style={{ display: 'flex', justifyContent: 'center', padding: '16px 0' }}>
           <span style={{ fontFamily: typography.fontFamily, fontWeight: 700, fontSize: 14, color: colors.tertiary }}>Today</span>
         </div>
-        <BannerBlock text="Walk from {date at time} was marked as complete at 5:23 PM, Jan 18." />
+        {resolution === 'completed' && (
+          <BannerBlock text={`Walk from yesterday at 12:00 PM was marked as complete on ${resolutionTimestamp}.`} />
+        )}
+        {resolution === 'cancelled' && (
+          <BannerBlock text={`Walk from yesterday at 12:00 PM was cancelled on ${resolutionTimestamp}. A refund of $20.00 has been processed.`} />
+        )}
+        {!resolution && (
+          <BannerBlock text="Walk from {date at time} was marked as complete at 5:23 PM, Jan 18." />
+        )}
       </div>
 
       {/* ─── Composer ─── */}

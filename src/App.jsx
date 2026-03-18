@@ -1,12 +1,17 @@
 import React, { useState } from 'react'
 import { colors, typography } from './tokens'
 import { useLoadTime } from './hooks/useLoadTime'
-import { ActionSheet } from './components'
+import { formatActionTimestamp } from './hooks/useDate'
+import { ActionSheet, ReviewSheet } from './components'
 import { HomeScreen, ConversationScreen } from './screens'
 
 export default function App() {
   const [screen, setScreen] = useState('home')
   const [actionSheet, setActionSheet] = useState(false)
+  const [reviewSheet, setReviewSheet] = useState(false)
+  const [resolution, setResolution] = useState(null)
+  const [resolutionTimestamp, setResolutionTimestamp] = useState(null)
+  const [cardResolved, setCardResolved] = useState(false)
   const [transition, setTransition] = useState(false)
   const [direction, setDirection] = useState('forward')
   const loadTime = useLoadTime()
@@ -34,12 +39,14 @@ export default function App() {
         {screen === 'home' && (
           <HomeScreen
             onOpenActionSheet={() => setActionSheet(true)}
+            onOpenReviewSheet={() => setReviewSheet(true)}
             onNavigateConversation={() => navigateTo('conversation', 'forward')}
+            cardResolved={cardResolved}
             loadTime={loadTime}
           />
         )}
         {screen === 'conversation' && (
-          <ConversationScreen onBack={() => navigateTo('home', 'back')} />
+          <ConversationScreen onBack={() => navigateTo('home', 'back')} resolution={resolution} resolutionTimestamp={resolutionTimestamp} />
         )}
       </div>
 
@@ -51,15 +58,30 @@ export default function App() {
           setActionSheet(false)
           setTimeout(() => navigateTo('conversation', 'forward'), 200)
         }}
+        onReviewAndComplete={() => {
+          setActionSheet(false)
+          setTimeout(() => setReviewSheet(true), 200)
+        }}
+      />
+      <ReviewSheet
+        visible={reviewSheet}
+        onClose={() => setReviewSheet(false)}
+        onComplete={() => {
+          setResolution('completed')
+          setResolutionTimestamp(formatActionTimestamp())
+          setCardResolved(true)
+          setReviewSheet(false)
+          setTimeout(() => navigateTo('conversation', 'forward'), 200)
+        }}
+        onCancelRefund={() => {
+          setResolution('cancelled')
+          setResolutionTimestamp(formatActionTimestamp())
+          setCardResolved(true)
+          setReviewSheet(false)
+          setTimeout(() => navigateTo('conversation', 'forward'), 200)
+        }}
       />
 
-      {/* Prototype badge */}
-      <div className="prototype-badge" style={{
-        position: 'absolute', top: 8, left: '50%', transform: 'translateX(-50%)',
-        background: 'rgba(0,0,0,0.06)', borderRadius: 99, padding: '2px 10px',
-        fontSize: 10, fontWeight: 700, color: colors.tertiary, letterSpacing: 0.5,
-        textTransform: 'uppercase', pointerEvents: 'none',
-      }}>Prototype</div>
     </div>
   )
 }
