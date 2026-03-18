@@ -48,6 +48,6 @@ export const spacing = {
 }
 
 export const typography = {
-  fontFamily: "'Nunito Sans', sans-serif",
-  displayFamily: "'Georgia', serif",
+  fontFamily: "'Averta', sans-serif",
+  displayFamily: "'Bogart-Semibold', sans-serif",
 }

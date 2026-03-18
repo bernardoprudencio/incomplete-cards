@@ -1,0 +1,729 @@
+@font-face {
+  font-family: 'rover-icons';
+  src: url('./fonts/rover-icons.eot?f8o35m');
+  src: url('./fonts/rover-icons.eot?f8o35m#iefix') format('embedded-opentype'),
+    url('./fonts/rover-icons.woff2?f8o35m') format('woff2'),
+    url('./fonts/rover-icons.ttf?f8o35m') format('truetype'),
+    url('./fonts/rover-icons.woff?f8o35m') format('woff'),
+    url('./fonts/rover-icons.svg?f8o35m#rover-icons') format('svg');
+  font-weight: normal;
+  font-style: normal;
+}
+
+[class^='rover-icon-'],
+[class*=' rover-icon-'] {
+  /* use !important to prevent issues with browser extensions that change fonts */
+  font-family: 'rover-icons' !important;
+  speak: none;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+
+  /* Better Font Rendering =========== */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.rover-icon-dog-size-cat:before {
+  content: '\e994';
+  color: #555;
+}
+.rover-icon-cat-size-md:before {
+  content: '\e994';
+  font-size: 28px;
+}
+.rover-icon-login:before {
+  content: '\e901';
+}
+.rover-icon-google .path1:before {
+  content: '\e935';
+  color: rgb(255, 255, 255);
+}
+.rover-icon-google .path2:before {
+  content: '\e98f';
+  margin-left: -1em;
+  color: rgb(66, 133, 244);
+}
+.rover-icon-google .path3:before {
+  content: '\e990';
+  margin-left: -1em;
+  color: rgb(52, 168, 83);
+}
+.rover-icon-google .path4:before {
+  content: '\e991';
+  margin-left: -1em;
+  color: rgb(251, 188, 5);
+}
+.rover-icon-google .path5:before {
+  content: '\e992';
+  margin-left: -1em;
+  color: rgb(234, 67, 53);
+}
+.rover-icon-in-facebook:before {
+  content: '\e936';
+}
+.rover-icon-ic_cat_face_profile:before {
+  content: '\e98b';
+}
+.rover-icon-ic_dog_face_profile:before {
+  content: '\e98c';
+}
+.rover-icon-grooming:before {
+  content: '\e985';
+}
+.rover-icon-certificate:before {
+  content: '\e986';
+}
+.rover-icon-home:before {
+  content: '\e987';
+}
+.rover-icon-clean:before {
+  content: '\e988';
+}
+.rover-icon-haircut:before {
+  content: '\e989';
+}
+.rover-icon-purse:before {
+  content: '\e98a';
+}
+.rover-icon-account-info:before {
+  content: '\e64e';
+}
+.rover-icon-activity-food:before {
+  content: '\e95c';
+}
+.rover-icon-activity-pee:before {
+  content: '\e95a';
+}
+.rover-icon-activity-poop:before {
+  content: '\e95b';
+}
+.rover-icon-activity-water:before {
+  content: '\e95d';
+}
+.rover-icon-add-comment:before {
+  content: '\e649';
+}
+.rover-icon-alert:before {
+  content: '\e629';
+}
+.rover-icon-apartment:before {
+  content: '\e605';
+}
+.rover-icon-asap:before {
+  content: '\e968';
+}
+.rover-icon-at-symbol:before {
+  content: '\e905';
+}
+.rover-icon-balloon:before {
+  content: '\e972';
+}
+.rover-icon-bed-no:before {
+  content: '\e60f';
+}
+.rover-icon-bed-yes:before {
+  content: '\e60e';
+}
+.rover-icon-boarding_flat:before {
+  content: '\e963';
+}
+.rover-icon-break-time:before {
+  content: '\e601';
+}
+.rover-icon-button-click:before {
+  content: '\e903';
+}
+.rover-icon-caged-pets-no:before {
+  content: '\e64d';
+}
+.rover-icon-calendar:before {
+  content: '\e63b';
+}
+.rover-icon-care-instructions:before {
+  content: '\e61d';
+}
+.rover-icon-checked:before {
+  content: '\e625';
+}
+.rover-icon-children-no:before {
+  content: '\e615';
+}
+.rover-icon-children-teens:before {
+  content: '\e614';
+}
+.rover-icon-children-toddlers:before {
+  content: '\e613';
+}
+.rover-icon-comments:before {
+  content: '\e644';
+}
+.rover-icon-cpr-yes:before {
+  content: '\e619';
+}
+.rover-icon-customer-service:before {
+  content: '\e63e';
+}
+.rover-icon-daily-treat:before {
+  content: '\e906';
+}
+.rover-icon-daycare:before {
+  content: '\e651';
+}
+.rover-icon-daycare_flat:before {
+  content: '\e965';
+}
+.rover-icon-daycare_outline:before {
+  content: '\e904';
+}
+.rover-icon-dog-size-xl:before {
+  content: '\e982';
+}
+.rover-icon-dog-size-xl-scaled:before {
+  content: '\e97d';
+}
+.rover-icon-dog-size-lg:before {
+  content: '\e981';
+}
+.rover-icon-dog-size-lg-large:before {
+  content: '\e97c';
+}
+.rover-icon-dog-size-md:before {
+  content: '\e980';
+}
+.rover-icon-dog-size-md-scaled:before {
+  content: '\e97b';
+}
+.rover-icon-dog-size-sm:before {
+  content: '\e97f';
+}
+.rover-icon-dog-size-sm-scaled:before {
+  content: '\e97a';
+}
+.rover-icon-dog-size-tiny:before {
+  content: '\e97e';
+}
+.rover-icon-dog-size-tiny-scaled:before {
+  content: '\e979';
+}
+.rover-icon-dropin_flat:before {
+  content: '\e967';
+}
+.rover-icon-duplicate-message:before {
+  content: '\e937';
+}
+.rover-icon-edit:before {
+  content: '\e645';
+}
+.rover-icon-editorial:before {
+  content: '\e635';
+}
+.rover-icon-exercise-yes:before {
+  content: '\e61c';
+}
+.rover-icon-experience:before {
+  content: '\e610';
+}
+.rover-icon-facebook-footer:before {
+  content: '\e907';
+}
+.rover-icon-farm:before {
+  content: '\e604';
+}
+.rover-icon-female:before {
+  content: '\e64f';
+}
+.rover-icon-fenced:before {
+  content: '\e602';
+}
+.rover-icon-flag:before {
+  content: '\e902';
+}
+.rover-icon-furniture-no:before {
+  content: '\e60d';
+}
+.rover-icon-furniture-yes:before {
+  content: '\e600';
+}
+.rover-icon-generic-bullet:before {
+  content: '\e630';
+}
+.rover-icon-generic-minus:before {
+  content: '\e64a';
+}
+.rover-icon-generic-none:before {
+  content: '\e626';
+}
+.rover-icon-generic-plus:before {
+  content: '\e640';
+}
+.rover-icon-has-caged-pets:before {
+  content: '\e608';
+}
+.rover-icon-has-cats:before {
+  content: '\e609';
+}
+.rover-icon-has-cats-no:before {
+  content: '\e64b';
+}
+.rover-icon-has-dogs:before {
+  content: '\e60b';
+}
+.rover-icon-heart:before {
+  content: '\e628';
+}
+.rover-icon-heart-check:before {
+  content: '\e96f';
+}
+.rover-icon-heart-filled:before {
+  content: '\e962';
+}
+.rover-icon-homevists:before {
+  content: '\e652';
+}
+.rover-icon-drop-in:before {
+  content: '\e652';
+}
+.rover-icon-house:before {
+  content: '\e606';
+}
+.rover-icon-house_sitting_flat:before {
+  content: '\e964';
+}
+.rover-icon-id-card:before {
+  content: '\e627';
+}
+.rover-icon-image-upload:before {
+  content: '\e954';
+}
+.rover-icon-inject-meds-yes:before {
+  content: '\e61b';
+}
+.rover-icon-instagram-footer:before {
+  content: '\e909';
+}
+.rover-icon-lets-chat:before {
+  content: '\e633';
+}
+.rover-icon-life-ring:before {
+  content: '\e638';
+}
+.rover-icon-location:before {
+  content: '\e63c';
+}
+.rover-icon-lock:before {
+  content: '\e95e';
+}
+.rover-icon-lockbox:before {
+  content: '\e970';
+}
+.rover-icon-logo-rover:before {
+  content: '\e96b';
+}
+.rover-icon-logo-rovergo:before {
+  content: '\e950';
+}
+.rover-icon-male:before {
+  content: '\e650';
+}
+.rover-icon-message-waiting:before {
+  content: '\e939';
+}
+.rover-icon-money:before {
+  content: '\e636';
+}
+.rover-icon-neutral-face:before {
+  content: '\e938';
+}
+.rover-icon-no-dogs:before {
+  content: '\e607';
+}
+.rover-icon-no-entry:before {
+  content: '\e973';
+}
+.rover-icon-no-pets:before {
+  content: '\e618';
+}
+.rover-icon-non-smoking:before {
+  content: '\e60c';
+}
+.rover-icon-oral-meds-yes:before {
+  content: '\e61a';
+}
+.rover-icon-owner-travel:before {
+  content: '\e959';
+}
+.rover-icon-package:before {
+  content: '\e62d';
+}
+.rover-icon-page-left:before {
+  content: '\e623';
+}
+.rover-icon-page-right:before {
+  content: '\e624';
+}
+.rover-icon-paper-plane:before {
+  content: '\e958';
+}
+.rover-icon-pencil-ruler:before {
+  content: '\e908';
+}
+.rover-icon-phone:before {
+  content: '\e61e';
+}
+.rover-icon-pinterest-footer:before {
+  content: '\e952';
+}
+.rover-icon-price-boost:before {
+  content: '\e641';
+}
+.rover-icon-question:before {
+  content: '\e631';
+}
+.rover-icon-rainy-day:before {
+  content: '\e93a';
+}
+.rover-icon-repeat:before {
+  content: '\e646';
+}
+.rover-icon-repeating:before {
+  content: '\e969';
+}
+.rover-icon-report-card:before {
+  content: '\e971';
+}
+.rover-icon-response-time:before {
+  content: '\e611';
+}
+.rover-icon-ribbon:before {
+  content: '\e642';
+}
+.rover-icon-rover-paw:before {
+  content: '\e62f';
+}
+.rover-icon-rover-paw-outline:before {
+  content: '\e955';
+}
+.rover-icon-sad-face:before {
+  content: '\e93b';
+}
+.rover-icon-scheduled:before {
+  content: '\e96a';
+}
+.rover-icon-share:before {
+  content: '\e62e';
+}
+.rover-icon-shield:before {
+  content: '\e63a';
+}
+.rover-icon-shield-check:before {
+  content: '\e96c';
+}
+.rover-icon-sitter-home:before {
+  content: '\e617';
+}
+.rover-icon-sitter-traveling:before {
+  content: '\e616';
+}
+.rover-icon-smoking:before {
+  content: '\e60a';
+}
+.rover-icon-star:before {
+  content: '\e62a';
+}
+.rover-icon-stay-photos:before {
+  content: '\e612';
+}
+.rover-icon-stepper-minus:before {
+  content: '\e960';
+}
+.rover-icon-stepper-plus:before {
+  content: '\e974';
+}
+.rover-icon-stopwatch:before {
+  content: '\e63d';
+}
+.rover-icon-tag:before {
+  content: '\e643';
+}
+.rover-icon-task-list:before {
+  content: '\e639';
+}
+.rover-icon-thin-check:before {
+  content: '\e96e';
+}
+.rover-icon-thought-bubble:before {
+  content: '\e63f';
+}
+.rover-icon-thumbs-down:before {
+  content: '\e64c';
+}
+.rover-icon-thumbs-up:before {
+  content: '\e647';
+}
+.rover-icon-times-close:before {
+  content: '\e62b';
+}
+.rover-icon-training-book:before {
+  content: '\e634';
+}
+.rover-icon-traits-commands:before {
+  content: '\e975';
+}
+.rover-icon-traits-dislikes:before {
+  content: '\e976';
+}
+.rover-icon-traits-habits:before {
+  content: '\e977';
+}
+.rover-icon-traits-requests:before {
+  content: '\e978';
+}
+.rover-icon-twitter-footer:before {
+  content: '\e953';
+}
+.rover-icon-unavailable:before {
+  content: '\e95f';
+}
+.rover-icon-unfenced:before {
+  content: '\e603';
+}
+.rover-icon-viewed:before {
+  content: '\e648';
+}
+.rover-icon-walking:before {
+  content: '\e62c';
+}
+.rover-icon-walking_flat:before {
+  content: '\e966';
+}
+.rover-icon-yes-dogs:before {
+  content: '\e632';
+}
+.rover-icon-yes-pets:before {
+  content: '\e637';
+}
+.rover-icon-zshare-android:before {
+  content: '\e98d';
+}
+.rover-icon-zshare-ios:before {
+  content: '\e98e';
+}
+.rover-icon-in-rotate:before {
+  content: '\e983';
+}
+.rover-icon-in-search-minus:before {
+  content: '\e984';
+}
+.rover-icon-in-bell:before {
+  content: '\e900';
+}
+.rover-icon-in-lightning:before {
+  content: '\e96d';
+}
+.rover-icon-in-faux-dropdown:before {
+  content: '\e961';
+}
+.rover-icon-in-arrow-left:before {
+  content: '\e90a';
+}
+.rover-icon-in-arrow-right:before {
+  content: '\e90b';
+}
+.rover-icon-in-ban:before {
+  content: '\e90c';
+}
+.rover-icon-in-briefcase:before {
+  content: '\e90d';
+}
+.rover-icon-in-calendar:before {
+  content: '\e90e';
+}
+.rover-icon-in-camera:before {
+  content: '\e90f';
+}
+.rover-icon-in-cart:before {
+  content: '\e910';
+}
+.rover-icon-in-chat:before {
+  content: '\e911';
+}
+.rover-icon-in-check-mark:before {
+  content: '\e912';
+}
+.rover-icon-in-dash:before {
+  content: '\e951';
+}
+.rover-icon-in-check:before {
+  content: '\e913';
+}
+.rover-icon-in-circle-filled:before {
+  content: '\e914';
+}
+.rover-icon-in-circle:before {
+  content: '\e915';
+}
+.rover-icon-in-clock:before {
+  content: '\e916';
+}
+.rover-icon-in-close:before {
+  content: '\e917';
+}
+.rover-icon-in-cloud-upload:before {
+  content: '\e918';
+}
+.rover-icon-in-cog:before {
+  content: '\e919';
+}
+.rover-icon-in-double-down:before {
+  content: '\e91a';
+}
+.rover-icon-in-double-up:before {
+  content: '\e91b';
+}
+.rover-icon-in-down:before {
+  content: '\e91c';
+}
+.rover-icon-in-edit:before {
+  content: '\e91d';
+}
+.rover-icon-in-envelope:before {
+  content: '\e91e';
+}
+.rover-icon-in-exclamation-triangle:before {
+  content: '\e91f';
+}
+.rover-icon-in-eye:before {
+  content: '\e920';
+}
+.rover-icon-in-facebook1:before {
+  content: '\e921';
+}
+.rover-icon-in-female:before {
+  content: '\e922';
+}
+.rover-icon-in-file-image:before {
+  content: '\e923';
+}
+.rover-icon-in-file-text:before {
+  content: '\e924';
+}
+.rover-icon-in-file-video:before {
+  content: '\e925';
+}
+.rover-icon-in-folder:before {
+  content: '\e926';
+}
+.rover-icon-in-heart-filled:before {
+  content: '\e927';
+}
+.rover-icon-in-heart:before {
+  content: '\e928';
+}
+.rover-icon-in-home:before {
+  content: '\e929';
+}
+.rover-icon-in-info-circle:before {
+  content: '\e92a';
+}
+.rover-icon-in-left:before {
+  content: '\e92b';
+}
+.rover-icon-in-lock:before {
+  content: '\e92c';
+}
+.rover-icon-in-male:before {
+  content: '\e92d';
+}
+.rover-icon-in-map-marker:before {
+  content: '\e92e';
+}
+.rover-icon-in-medkit:before {
+  content: '\e92f';
+}
+.rover-icon-in-mobile:before {
+  content: '\e930';
+}
+.rover-icon-in-paper-plane:before {
+  content: '\e931';
+}
+.rover-icon-in-paw:before {
+  content: '\e932';
+}
+.rover-icon-in-pencil:before {
+  content: '\e933';
+}
+.rover-icon-in-pinterest:before {
+  content: '\e934';
+}
+.rover-icon-in-play-circle:before {
+  content: '\e93c';
+}
+.rover-icon-in-plus-square:before {
+  content: '\e93d';
+}
+.rover-icon-in-minus-square:before {
+  content: '\e956';
+}
+.rover-icon-in-plus:before {
+  content: '\e93e';
+}
+.rover-icon-in-minus:before {
+  content: '\e957';
+}
+.rover-icon-in-question-circle:before {
+  content: '\e94f';
+}
+.rover-icon-in-reply:before {
+  content: '\e93f';
+}
+.rover-icon-in-right:before {
+  content: '\e940';
+}
+.rover-icon-in-search-plus:before {
+  content: '\e941';
+}
+.rover-icon-in-search:before {
+  content: '\e942';
+}
+.rover-icon-in-sliders:before {
+  content: '\e993';
+}
+.rover-icon-in-square-filled:before {
+  content: '\e944';
+}
+.rover-icon-in-square:before {
+  content: '\e945';
+}
+.rover-icon-in-star-half:before {
+  content: '\e946';
+}
+.rover-icon-in-star-o:before {
+  content: '\e947';
+}
+.rover-icon-in-star:before {
+  content: '\e948';
+}
+.rover-icon-in-times:before {
+  content: '\e949';
+}
+.rover-icon-in-trash:before {
+  content: '\e94a';
+}
+.rover-icon-in-twitter:before {
+  content: '\e94b';
+}
+.rover-icon-in-up:before {
+  content: '\e94c';
+}
+.rover-icon-in-upload:before {
+  content: '\e94d';
+}
+.rover-icon-in-user:before {
+  content: '\e94e';
+}
+.rover-icon-in-spinner:before {
+  content: '\e943';
+}
