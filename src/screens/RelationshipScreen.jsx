@@ -1,5 +1,14 @@
 import { useState, useRef, useEffect } from 'react'
 import { typography } from '../tokens'
+import Button from '../components/Button'
+import Row from '../components/Row'
+import PetAvatar from '../components/PetAvatar'
+import { ChevronRightIcon } from '../assets/icons'
+import boardingIcon   from '../assets/boarding.svg'
+import sittingIcon    from '../assets/sitting.svg'
+import daycareIcon    from '../assets/daycare.svg'
+import dropInIcon     from '../assets/drop-in.svg'
+import walkingIcon    from '../assets/walking.svg'
 
 // ─── Kibble Design Tokens (aligned with prototype palette) ───────────────────
 const R = {
@@ -32,6 +41,17 @@ const PETS_SEED = [{id:1,name:"Louie",breed:"German Shepherd",emoji:"🐕"},{id:
 const PET_EMOJIS = ["🐕","🐈","🐇","🐦","🐠","🦎","🐹","🐾"]
 const FREQ = [{id:"once",label:"One-time"},{id:"weekly",label:"Weekly"},{id:"monthly",label:"Monthly"}]
 
+// ─── Service icons ────────────────────────────────────────────────────────────
+const SvcIcon = ({ src }) => <img src={src} alt="" style={{ width: 24, height: 24 }} />
+
+const SERVICE_ICONS = {
+  boarding:      <SvcIcon src={boardingIcon} />,
+  house_sitting: <SvcIcon src={sittingIcon} />,
+  doggy_daycare: <SvcIcon src={daycareIcon} />,
+  drop_in:       <SvcIcon src={dropInIcon} />,
+  dog_walking:   <SvcIcon src={walkingIcon} />,
+}
+
 // ─── Date helpers ─────────────────────────────────────────────────────────────
 const MONTHS   = ["January","February","March","April","May","June","July","August","September","October","November","December"]
 const MONTHS_S = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
@@ -50,6 +70,8 @@ function addMonths(d,n){ const r=new Date(d); r.setMonth(r.getMonth()+n); return
 function nightCount(u) { if(!u.startDate||!u.endDate)return 1; return Math.max(1,Math.round((parseDate(u.endDate)-parseDate(u.startDate))/86400000)) }
 function endTimeFromDuration(t,mins){ if(!t||!mins)return""; const[h,m]=t.split(":").map(Number),tot=h*60+m+mins; return`${String(Math.floor(tot/60)%24).padStart(2,"0")}:${String(tot%60).padStart(2,"0")}` }
 function isToday(d)    { const t=new Date(); return d.getFullYear()===t.getFullYear()&&d.getMonth()===t.getMonth()&&d.getDate()===t.getDate() }
+function isYesterday(d){ const y=addDays(new Date(new Date().setHours(0,0,0,0)),-1); return d.getFullYear()===y.getFullYear()&&d.getMonth()===y.getMonth()&&d.getDate()===y.getDate() }
+function fmtRelDate(d) { if(isToday(d))return"Today"; if(isYesterday(d))return"Yesterday"; return fmtDate(d) }
 function isPast(d)     { return d<new Date(new Date().setHours(0,0,0,0)) }
 function durLabel(svc,mins){ const opts=(svc&&svc.id==="doggy_daycare")?DURATION_DAYCARE:DURATION_SHORT; const f=opts.find(d=>d.mins===mins); return f?f.label:(mins+"min") }
 
@@ -119,7 +141,19 @@ function buildAgenda(units,relEndDate){
   if(relEndDate){ const cap=parseDate(relEndDate); all=all.filter(o=>o.start<=cap) }
   all.sort((a,b)=>a.start-b.start)
   const byDay={}
-  all.forEach(occ=>{ const k=dateKey(occ.start); if(!byDay[k]) byDay[k]=[]; byDay[k].push(occ) })
+  all.forEach(occ=>{
+    if(occ.svc.type==="overnight"&&occ.end){
+      const nights=nightCount(occ.unit)
+      for(let i=0;i<nights;i++){
+        const day=addDays(occ.start,i)
+        const k=dateKey(day)
+        if(!byDay[k]) byDay[k]=[]
+        byDay[k].push({...occ,nightIndex:i+1,totalNights:nights})
+      }
+    } else {
+      const k=dateKey(occ.start); if(!byDay[k]) byDay[k]=[]; byDay[k].push(occ)
+    }
+  })
   return Object.entries(byDay).sort(([a],[b])=>a.localeCompare(b))
 }
 
@@ -134,10 +168,15 @@ const btnDestructive={background:R.red,color:"#fff",border:"none",borderRadius:9
 
 // ─── Chip ─────────────────────────────────────────────────────────────────────
 function Chip({label,active,onClick,small,danger}){
-  const base={padding:small?"4px 10px":"8px 12px",borderRadius:8,fontSize:14,fontWeight:600,cursor:"pointer",fontFamily,lineHeight:1.25,transition:"all 0.12s",display:"inline-flex",alignItems:"center",justifyContent:"center",gap:8,minHeight:small?undefined:48}
+  const base={padding:small?"4px 10px":"10px 16px",borderRadius:8,fontSize:14,fontWeight:600,cursor:"pointer",fontFamily,lineHeight:1.25,transition:"all 0.12s",display:"inline-flex",alignItems:"center",justifyContent:"center",gap:6}
   if(danger) return <button onClick={onClick} style={{...base,border:`2px solid ${R.red}`,background:R.redLight,color:R.red}}>{label}</button>
-  if(active) return <button onClick={onClick} style={{...base,border:`2px solid #2E67D1`,background:"#ECF1FB",color:R.navyMid}}>{label}</button>
-  return <button onClick={onClick} style={{...base,border:`2px solid ${R.border}`,background:"#fff",color:R.navyMid}}>{label}</button>
+  if(active) return (
+    <button onClick={onClick} style={{...base,border:`2px solid #2E67D1`,background:"#ECF1FB",color:R.navy}}>
+      <svg width="16" height="16" viewBox="0 0 32 32" fill="#2E67D1"><path d="M26.191 4.412a1 1 0 1 1 1.618 1.176l-16 22a1 1 0 0 1-1.516.12l-6-6a1 1 0 1 1 1.414-1.415l5.173 5.172L26.19 4.412z"/></svg>
+      {label}
+    </button>
+  )
+  return <button onClick={onClick} style={{...base,border:`2px solid ${R.border}`,background:"#fff",color:R.gray}}>{label}</button>
 }
 
 // ─── CalInput ─────────────────────────────────────────────────────────────────
@@ -146,10 +185,12 @@ function CalInput({value, onChange, minDate, placeholder}){
   const today=new Date(); today.setHours(0,0,0,0)
   const minD=minDate?parseDate(minDate):today
   const [open,setOpen]=useState(false)
+  const [alignRight,setAlignRight]=useState(false)
   const [viewYear,setViewYear]=useState(sel?sel.getFullYear():today.getFullYear())
   const [viewMonth,setViewMonth]=useState(sel?sel.getMonth():today.getMonth())
   const ref=useRef(null)
   useEffect(()=>{ if(!open)return; const h=e=>{ if(ref.current&&!ref.current.contains(e.target)) setOpen(false) }; document.addEventListener("mousedown",h); return()=>document.removeEventListener("mousedown",h) },[open])
+  const handleToggle=()=>{ if(!open&&ref.current){ const rect=ref.current.getBoundingClientRect(); setAlignRight(rect.left+276>window.innerWidth) } setOpen(o=>!o) }
   const firstDay=new Date(viewYear,viewMonth,1); const cells=[]
   for(let i=0;i<firstDay.getDay();i++) cells.push(null)
   for(let d=1;d<=new Date(viewYear,viewMonth+1,0).getDate();d++) cells.push(d)
@@ -159,13 +200,13 @@ function CalInput({value, onChange, minDate, placeholder}){
   const label=sel?fmtDateLong(sel):(placeholder||"Select date…")
   return(
     <div ref={ref} style={{position:"relative"}}>
-      <button onClick={()=>setOpen(!open)} style={{width:"100%",padding:"10px 12px",border:`1.5px solid ${open?R.blue:R.border}`,borderRadius:8,fontSize:13,fontFamily,color:sel?R.navy:R.grayLight,background:"#fff",cursor:"pointer",textAlign:"left",display:"flex",alignItems:"center",gap:8,boxSizing:"border-box"}}>
+      <button onClick={handleToggle} style={{width:"100%",padding:"10px 12px",border:`1.5px solid ${open?R.blue:R.border}`,borderRadius:8,fontSize:13,fontFamily,color:sel?R.navy:R.grayLight,background:"#fff",cursor:"pointer",textAlign:"left",display:"flex",alignItems:"center",gap:8,boxSizing:"border-box"}}>
         <span style={{fontSize:14}}>📅</span>
         <span style={{flex:1,fontWeight:sel?600:400}}>{label}</span>
         <span style={{color:R.grayLight,fontSize:10}}>{open?"▲":"▼"}</span>
       </button>
       {open&&(
-        <div style={{position:"absolute",top:"calc(100% + 6px)",left:0,zIndex:900,background:"#fff",borderRadius:8,boxShadow:"0 8px 32px rgba(0,0,0,0.15)",border:`1.5px solid ${R.border}`,width:276,padding:"14px 12px"}}>
+        <div style={{position:"absolute",top:"calc(100% + 6px)",left:alignRight?"auto":0,right:alignRight?0:"auto",zIndex:900,background:"#fff",borderRadius:8,boxShadow:"0 8px 32px rgba(0,0,0,0.15)",border:`1.5px solid ${R.border}`,width:276,padding:"14px 12px"}}>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}>
             <button onClick={prevM} style={{background:"none",border:"none",cursor:"pointer",fontSize:18,color:R.gray,padding:"2px 6px",borderRadius:6}}>‹</button>
             <span style={{fontWeight:600,fontSize:13,color:R.navy}}>{`${MONTHS[viewMonth]} ${viewYear}`}</span>
@@ -250,8 +291,9 @@ function PetSelector({pets, selectedIds, onChange}){
       {pets.map(p=>{
         const on=selectedIds.includes(p.id)
         return(
-          <button key={p.id} onClick={()=>toggle(p.id)} style={{padding:"8px 12px",borderRadius:8,fontSize:14,fontWeight:600,cursor:"pointer",border:on?`2px solid #2E67D1`:`2px solid ${R.border}`,background:on?"#ECF1FB":"#fff",color:R.navyMid,fontFamily,lineHeight:1.25,transition:"all 0.12s",minHeight:48,display:"inline-flex",alignItems:"center",gap:8}}>
-            {p.emoji} {p.name}
+          <button key={p.id} onClick={()=>toggle(p.id)} style={{padding:"10px 16px",borderRadius:8,fontSize:14,fontWeight:600,cursor:"pointer",border:on?`2px solid #2E67D1`:`2px solid ${R.border}`,background:on?"#ECF1FB":"#fff",color:on?R.navy:R.gray,fontFamily,lineHeight:1.25,transition:"all 0.12s",display:"inline-flex",alignItems:"center",gap:6}}>
+            {on&&<svg width="16" height="16" viewBox="0 0 32 32" fill="#2E67D1"><path d="M26.191 4.412a1 1 0 1 1 1.618 1.176l-16 22a1 1 0 0 1-1.516.12l-6-6a1 1 0 1 1 1.414-1.415l5.173 5.172L26.19 4.412z"/></svg>}
+            {p.name}
           </button>
         )
       })}
@@ -330,20 +372,8 @@ function UnitEditor({unit, onChange, onRemove, onDuplicate, allUnits, allPets, s
   const togglePet=id=>{ const ids=unit.petIds.includes(id)?unit.petIds.filter(i=>i!==id):[...unit.petIds,id]; if(ids.length) onChange({...unit,petIds:ids,petOverride:true}) }
   const toggleWeekDay=d=>{ const days=unit.weekDays||[]; onChange({...unit,weekDays:days.includes(d)?days.filter(x=>x!==d):[...days,d]}) }
   return(
-    <div style={{background:"#fff",borderRadius:8,padding:"16px 18px",marginBottom:12,border:`1.5px solid ${conflict?R.red:R.cardBorder}`,boxShadow:"0 1px 4px rgba(0,0,0,0.04)"}}>
-      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14,gap:8}}>
-        <div style={{display:"flex",alignItems:"center",gap:7,flexWrap:"wrap",flex:1,minWidth:0}}>
-          <span style={{fontSize:18}}>{svc&&svc.icon}</span>
-          <span style={{fontWeight:600,fontSize:14,color:R.navy}}>{svc&&svc.label}</span>
-          {repeats&&<span style={{fontSize:10,background:R.blueLight,color:R.blue,fontWeight:600,padding:"2px 7px",borderRadius:99}}>↻ {unit.frequency}</span>}
-          {conflict&&<span style={{fontSize:10,background:R.redLight,color:R.red,fontWeight:600,padding:"2px 7px",borderRadius:99}}>⚠ Conflict</span>}
-        </div>
-        <div style={{display:"flex",gap:5,flexShrink:0}}>
-          {showChangeType&&<button onClick={onChangeType} style={{background:"none",border:`1px solid ${R.border}`,borderRadius:7,padding:"3px 8px",cursor:"pointer",fontSize:11,color:R.gray,fontFamily}}>⇄ Type</button>}
-          {onDuplicate&&<button onClick={onDuplicate} style={{background:"none",border:`1px solid ${R.border}`,borderRadius:7,padding:"3px 8px",cursor:"pointer",fontSize:11,color:R.gray,fontFamily}}>⧉ Copy</button>}
-          {showRemove&&<button onClick={onRemove} style={{background:"none",border:"none",cursor:"pointer",color:R.grayLight,fontSize:20,lineHeight:1,padding:0}}>×</button>}
-        </div>
-      </div>
+    <div style={{marginBottom:12}}>
+      {conflict&&<div style={{fontSize:12,background:R.redLight,color:R.red,fontWeight:600,padding:"8px 12px",borderRadius:8,marginBottom:10}}>⚠ Conflict with another service</div>}
       {overnight?(
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:14}}>
           <div><label style={labelSt}>Check-in</label><CalInput value={unit.startDate} onChange={v=>onChange({...unit,startDate:v})} placeholder="Check-in date"/></div>
@@ -467,25 +497,28 @@ function AddSheet({onAdd, onClose, existing, allPets}){
   const canAdd=unit&&unit.startDate&&!conflict&&unit.petIds.length>0
   return(
     <div style={{position:"fixed",inset:0,background:"rgba(10,18,30,0.5)",zIndex:200,display:"flex",alignItems:"flex-end",justifyContent:"center"}} onClick={onClose}>
-      <div onClick={e=>e.stopPropagation()} style={{background:R.bg,borderRadius:"20px 20px 0 0",width:"100%",maxWidth:480,maxHeight:"92vh",overflowY:"auto",boxShadow:"0 -8px 40px rgba(0,0,0,0.18)"}}>
-        <div style={{background:"#fff",padding:"18px 20px 14px",borderRadius:"20px 20px 0 0",borderBottom:`1px solid ${R.border}`,position:"sticky",top:0,zIndex:1}}>
-          <div style={{width:36,height:4,borderRadius:99,background:R.border,margin:"0 auto 14px"}}/>
-          {step==="configure"&&<button onClick={()=>{setStep("pick");setSvc(null);setUnit(null)}} style={{...btnGhost,padding:"6px 12px",fontSize:12,marginBottom:12}}>← Back</button>}
-          <h3 style={{margin:0,fontSize:18,fontWeight:600,color:R.navy,fontFamily}}>{step==="pick"?"Choose service type":`${svc&&svc.icon} ${svc&&svc.label}`}</h3>
+      <div onClick={e=>e.stopPropagation()} style={{background:R.white,borderRadius:"20px 20px 0 0",width:"100%",maxWidth:480,maxHeight:"92vh",overflowY:"auto",boxShadow:"0 -8px 40px rgba(0,0,0,0.18)"}}>
+        <div style={{background:R.white,padding:"18px 16px 8px",borderRadius:"20px 20px 0 0",position:"sticky",top:0,zIndex:1}}>
+          <div style={{width:36,height:4,borderRadius:99,background:R.border,margin:"0 auto 24px"}}/>
+          <h3 style={{margin:0,fontSize:18,fontWeight:600,color:R.navy,fontFamily}}>{step==="pick"?"Add a service":`${svc&&svc.label}`}</h3>
         </div>
-        <div style={{padding:"16px 20px 36px"}}>
+        <div style={{padding:"8px 16px 36px"}}>
           {step==="pick"&&SERVICES.map(s=>(
-            <button key={s.id} onClick={()=>{setSvc(s);setUnit(defaultUnit(s.id,{petIds:(allPets||PETS_SEED).map(p=>p.id)}));setStep("configure")}} style={{display:"flex",alignItems:"center",gap:14,padding:"14px 16px",borderRadius:8,border:`1.5px solid ${R.cardBorder}`,background:"#fff",cursor:"pointer",fontFamily,textAlign:"left",width:"100%",marginBottom:10}}>
-              <span style={{fontSize:24}}>{s.icon}</span>
-              <div style={{flex:1}}><div style={{fontWeight:600,fontSize:14,color:R.navy}}>{s.label}</div><div style={{fontSize:12,color:R.gray,marginTop:2}}>{s.desc}</div></div>
-              <span style={{color:R.grayLight,fontSize:18}}>›</span>
-            </button>
+            <Row
+              key={s.id}
+              label={s.label}
+              sublabel={s.desc}
+              leftItem={SERVICE_ICONS[s.id]}
+              rightItem={<ChevronRightIcon />}
+              onClick={()=>{setSvc(s);setUnit(defaultUnit(s.id,{petIds:(allPets||PETS_SEED).map(p=>p.id)}));setStep("configure")}}
+            />
           ))}
           {step==="configure"&&unit&&<>
             <UnitEditor unit={unit} onChange={setUnit} onRemove={onClose} allUnits={existing} allPets={allPets} showRemove={false}/>
-            <button onClick={()=>canAdd&&onAdd(unit)} style={{...btnPrimary,background:canAdd?R.blue:R.border,color:canAdd?"#fff":R.gray,cursor:canAdd?"pointer":"not-allowed",boxShadow:canAdd?`0 4px 14px ${R.blue}44`:"none"}}>
-              {conflict?"Fix conflict first":!unit.startDate?"Set a date to continue":"Add to request →"}
-            </button>
+            <Button variant="primary" size="small" fullWidth disabled={!canAdd} onClick={()=>canAdd&&onAdd(unit)}>
+              {conflict?"Fix conflict first":!unit.startDate?"Set a date to continue":"Add to request"}
+            </Button>
+            <Button variant="default" size="small" fullWidth onClick={()=>{setStep("pick");setSvc(null);setUnit(null)}} style={{marginTop:12}}>Go back</Button>
           </>}
         </div>
       </div>
@@ -497,101 +530,107 @@ function AddSheet({onAdd, onClose, existing, allPets}){
 function OccActionSheet({occ, allUnits, allPets, onSaveUnit, onSkip, onOverride, onOverrideFromDate, onCancel, onClose}){
   const [view,setView]=useState("actions")
   const [draft,setDraft]=useState({...occ.unit})
-  const isRecurring=occ.parentUnit?occ.parentUnit.frequency!=="once":occ.unit.frequency!=="once"
-  const isSkipped=occ.skipped
-  const isOverridden=occ.isOverride
-  const [showOverrideChoice,setShowOverrideChoice]=useState(false)
+  const isRecurring=(occ.parentUnit||occ.unit).frequency!=="once"
+  const overnight=occ.svc.type==="overnight"
+  const endT=!overnight?endTimeFromDuration(occ.unit.startTime,occ.unit.durationMins):null
+  const occPets=allPets.filter(p=>occ.unit.petIds.includes(p.id))
+  const dateLabel=overnight
+    ?`${fmtDate(occ.start)} to ${fmtDate(occ.end)} · ${occ.totalNights||nightCount(occ.unit)} night${(occ.totalNights||nightCount(occ.unit))!==1?"s":""}`
+    :`${fmtRelDate(occ.start)} · ${fmtTime(occ.unit.startTime)} to ${fmtTime(endT)}`
 
-  if(view==="edit") return(
+  const headerRow=(
+    <Row
+      label={`${occ.svc.label}${occPets.length>0?`: ${occPets.map(p=>p.name).join(", ")}`:""}` }
+      sublabel={dateLabel}
+      rightItem={<PetAvatar size={48} images={occPets.map(p=>p.img)}/>}
+      firstRow
+    />
+  )
+
+  const simpleSheet=(content)=>(
     <div style={{position:"fixed",inset:0,background:"rgba(10,18,30,0.5)",zIndex:300,display:"flex",alignItems:"flex-end",justifyContent:"center"}} onClick={onClose}>
-      <div onClick={e=>e.stopPropagation()} style={{background:R.bg,borderRadius:"20px 20px 0 0",width:"100%",maxWidth:480,maxHeight:"92vh",overflowY:"auto",boxShadow:"0 -8px 40px rgba(0,0,0,0.18)"}}>
-        <div style={{background:"#fff",padding:"18px 20px 14px",borderRadius:"20px 20px 0 0",borderBottom:`1px solid ${R.border}`,position:"sticky",top:0,zIndex:1}}>
-          <div style={{width:36,height:4,borderRadius:99,background:R.border,margin:"0 auto 14px"}}/>
-          <button onClick={()=>setView("actions")} style={{...btnGhost,padding:"6px 12px",fontSize:12,marginBottom:12}}>← Back</button>
-          <h3 style={{margin:0,fontSize:18,fontWeight:600,color:R.navy,fontFamily}}>{isRecurring?"Edit series":"Edit service"}</h3>
-          <p style={{margin:"4px 0 0",fontSize:12,color:R.gray,fontFamily}}>{isRecurring?"Changes apply to all future occurrences":"Update this service"}</p>
+      <div onClick={e=>e.stopPropagation()} style={{background:"#fff",borderRadius:"8px 8px 0 0",width:"100%",maxWidth:480,boxShadow:"0 -8px 40px rgba(0,0,0,0.18)",padding:"0 16px 24px"}}>
+        <div style={{display:"flex",justifyContent:"center",paddingTop:8,marginBottom:24}}>
+          <div style={{width:36,height:5,borderRadius:35,background:R.border}}/>
         </div>
-        <div style={{padding:"16px 20px 24px"}}>
+        {content}
+      </div>
+    </div>
+  )
+
+  const scopeRow=(label,sublabel,onClick,danger)=>(
+    <div onClick={onClick} style={{display:"flex",alignItems:"center",gap:12,minHeight:56,paddingTop:8,paddingBottom:8,cursor:"pointer"}}>
+      <div style={{flex:1,minWidth:0}}>
+        <p style={{fontFamily,fontWeight:700,fontSize:16,color:danger?R.red:R.navy,margin:0,lineHeight:1.5}}>{label}</p>
+        <p style={{fontFamily,fontSize:14,color:R.gray,margin:0,lineHeight:1.25}}>{sublabel}</p>
+      </div>
+      <ChevronRightIcon/>
+    </div>
+  )
+
+  const handleCancelFromDate=()=>{
+    const baseUnit=occ.parentUnit||occ.unit
+    if(dateKey(occ.start)===baseUnit.startDate){ onCancel(baseUnit) }
+    else { onSaveUnit({...baseUnit,repeatEndDate:dateKey(addDays(occ.start,-1))}) ; onClose() }
+  }
+
+  // ── Edit form ──
+  if(view==="editForm") return(
+    <div style={{position:"fixed",inset:0,background:"rgba(10,18,30,0.5)",zIndex:300,display:"flex",alignItems:"flex-end",justifyContent:"center"}} onClick={onClose}>
+      <div onClick={e=>e.stopPropagation()} style={{background:R.white,borderRadius:"20px 20px 0 0",width:"100%",maxWidth:480,maxHeight:"92vh",overflowY:"auto",boxShadow:"0 -8px 40px rgba(0,0,0,0.18)"}}>
+        <div style={{background:R.white,padding:"18px 16px 8px",borderRadius:"20px 20px 0 0",position:"sticky",top:0,zIndex:1}}>
+          <div style={{width:36,height:4,borderRadius:99,background:R.border,margin:"0 auto 24px"}}/>
+          <h3 style={{margin:0,fontSize:18,fontWeight:600,color:R.navy,fontFamily}}>Edit service</h3>
+        </div>
+        <div style={{padding:"8px 16px 36px"}}>
           <UnitEditor unit={draft} onChange={setDraft} onRemove={()=>{}} allUnits={allUnits.filter(u=>u.id!==draft.id)} allPets={allPets} showRemove={false}/>
-          <button onClick={()=>onSaveUnit(draft)} style={btnPrimary}>Save changes</button>
+          <Button variant="primary" size="small" fullWidth onClick={()=>isRecurring?setView("editScope"):(onSaveUnit(draft),onClose())}>Save changes</Button>
+          <Button variant="default" size="small" fullWidth onClick={()=>setView("actions")} style={{marginTop:12}}>Go back</Button>
         </div>
       </div>
     </div>
   )
 
-  if(view==="override") return(
-    <div style={{position:"fixed",inset:0,background:"rgba(10,18,30,0.5)",zIndex:300,display:"flex",alignItems:"flex-end",justifyContent:"center"}} onClick={onClose}>
-      <div onClick={e=>e.stopPropagation()} style={{background:R.bg,borderRadius:"20px 20px 0 0",width:"100%",maxWidth:480,maxHeight:"92vh",overflowY:"auto",boxShadow:"0 -8px 40px rgba(0,0,0,0.18)"}}>
-        <div style={{background:"#fff",padding:"18px 20px 14px",borderRadius:"20px 20px 0 0",borderBottom:`1px solid ${R.border}`,position:"sticky",top:0,zIndex:1}}>
-          <div style={{width:36,height:4,borderRadius:99,background:R.border,margin:"0 auto 14px"}}/>
-          <button onClick={()=>setView("actions")} style={{...btnGhost,padding:"6px 12px",fontSize:12,marginBottom:12}}>← Back</button>
-          <h3 style={{margin:0,fontSize:18,fontWeight:600,color:R.navy,fontFamily}}>Override this date</h3>
-          <p style={{margin:"4px 0 0",fontSize:12,color:R.gray,fontFamily}}>{fmtDateFull(occ.start)} — customise this occurrence only</p>
-        </div>
-        <div style={{padding:"16px 20px 24px"}}>
-          <UnitEditor unit={draft} onChange={setDraft} onRemove={()=>{}} allUnits={allUnits.filter(u=>u.id!==draft.id)} allPets={allPets} showRemove={false}/>
-          {showOverrideChoice?(
-            <div style={{display:"flex",flexDirection:"column",gap:8}}>
-              <button onClick={()=>{onOverride(occ,draft);onClose()}} style={{...btnPrimary,background:R.blue}}>Apply to this date only</button>
-              <button onClick={()=>{onOverrideFromDate(occ,draft);onClose()}} style={{...btnPrimary,background:R.navy}}>Apply from this date onwards</button>
-              <div style={{fontSize:11,color:R.gray,textAlign:"center",lineHeight:1.5,marginTop:2}}>"From this date onwards" will end the current rule and create a new one starting here.</div>
-            </div>
-          ):(
-            <button onClick={()=>setShowOverrideChoice(true)} style={btnPrimary}>Save override</button>
-          )}
-        </div>
-      </div>
-    </div>
-  )
+  // ── Edit scope picker — shown after editing, for recurring only ──
+  if(view==="editScope") return simpleSheet(<>
+    {headerRow}
+    {scopeRow("This occurrence only",`Apply changes to ${fmtRelDate(occ.start)} only — series continues unchanged`,()=>{onOverride(occ,draft);onClose()})}
+    {scopeRow("From this date onwards",`Update the rule starting ${fmtRelDate(occ.start)}`,()=>{onOverrideFromDate(occ,draft);onClose()})}
+    <div style={{marginTop:8}}><Button variant="default" size="small" fullWidth onClick={()=>setView("editForm")}>Go back</Button></div>
+  </>)
 
-  return(
-    <div style={{position:"fixed",inset:0,background:"rgba(10,18,30,0.5)",zIndex:300,display:"flex",alignItems:"flex-end",justifyContent:"center"}} onClick={onClose}>
-      <div onClick={e=>e.stopPropagation()} style={{background:"#fff",borderRadius:"20px 20px 0 0",width:"100%",maxWidth:480,maxHeight:"85vh",overflowY:"auto",boxShadow:"0 -8px 40px rgba(0,0,0,0.18)"}}>
-        <div style={{padding:"18px 20px 0"}}>
-          <div style={{width:36,height:4,borderRadius:99,background:R.border,margin:"0 auto 16px"}}/>
-          <div style={{display:"flex",gap:10,alignItems:"center",marginBottom:4}}>
-            <span style={{fontSize:22}}>{occ.svc.icon}</span>
-            <div>
-              <div style={{fontWeight:600,fontSize:16,color:R.navy,fontFamily}}>{occ.svc.label}</div>
-              <div style={{fontSize:12,color:R.gray,fontFamily}}>{fmtDateFull(occ.start)}{occ.svc.type==="daytime"?` · ${fmtTime(occ.unit.startTime)} – ${fmtTime(endTimeFromDuration(occ.unit.startTime,occ.unit.durationMins))}`:""}</div>
-            </div>
-          </div>
-          {isSkipped&&<div style={{background:R.disabled,borderRadius:8,padding:"8px 12px",marginTop:10,fontSize:12,color:R.disabledText,fontWeight:600,fontFamily}}>⏸ This occurrence is currently skipped</div>}
-          {isOverridden&&<div style={{background:R.amberLight,borderRadius:8,padding:"8px 12px",marginTop:10,fontSize:12,color:"#7A5800",fontWeight:600,fontFamily}}>✦ This date has been overridden</div>}
-        </div>
-        <div style={{padding:"16px 20px 32px",display:"flex",flexDirection:"column",gap:9}}>
-          <button onClick={()=>setView("edit")} style={{...btnGhost,width:"100%",padding:"13px",textAlign:"left",display:"flex",alignItems:"center",gap:12,borderRadius:8}}>
-            <span style={{fontSize:18}}>✎</span>
-            <div><div style={{fontWeight:600,fontSize:14,color:R.navy}}>{isRecurring?"Edit series":"Edit service"}</div><div style={{fontSize:12,color:R.gray,marginTop:1}}>{isRecurring?"Change schedule, pets or frequency":"Update date, time or pets"}</div></div>
-            <span style={{marginLeft:"auto",color:R.grayLight}}>›</span>
-          </button>
-          {isRecurring&&(
-            <button onClick={()=>{onSkip(occ.key,!isSkipped);onClose()}} style={{...btnGhost,width:"100%",padding:"13px",textAlign:"left",display:"flex",alignItems:"center",gap:12,borderRadius:8,borderColor:isSkipped?R.blue:R.border,background:isSkipped?R.blueLight:"#fff"}}>
-              <span style={{fontSize:18}}>{isSkipped?"▶":"⏸"}</span>
-              <div>
-                <div style={{fontWeight:600,fontSize:14,color:isSkipped?R.blue:R.navy}}>{isSkipped?"Re-enable this date":"Skip this occurrence"}</div>
-                <div style={{fontSize:12,color:R.gray,marginTop:1}}>{isSkipped?"Restore this date — series stays intact":"Only this date is skipped — series continues"}</div>
-              </div>
-            </button>
-          )}
-          {isRecurring&&!isSkipped&&(
-            <button onClick={()=>setView("override")} style={{...btnGhost,width:"100%",padding:"13px",textAlign:"left",display:"flex",alignItems:"center",gap:12,borderRadius:8}}>
-              <span style={{fontSize:18}}>✦</span>
-              <div><div style={{fontWeight:600,fontSize:14,color:R.navy}}>Override this date</div><div style={{fontSize:12,color:R.gray,marginTop:1}}>Detach from series — create an exception</div></div>
-              <span style={{marginLeft:"auto",color:R.grayLight}}>›</span>
-            </button>
-          )}
-          {!isRecurring&&onCancel&&(
-            <button onClick={()=>{onCancel(occ.unit);onClose()}} style={{...btnGhost,width:"100%",padding:"13px",textAlign:"left",display:"flex",alignItems:"center",gap:12,borderRadius:8,borderColor:R.red}}>
-              <span style={{fontSize:18}}>🗑</span>
-              <div><div style={{fontWeight:600,fontSize:14,color:R.red}}>Cancel service</div><div style={{fontSize:12,color:R.gray,marginTop:1}}>Remove this booking</div></div>
-            </button>
-          )}
-          <button onClick={onClose} style={{...btnGhost,width:"100%",padding:"11px",textAlign:"center",borderRadius:8,color:R.gray}}>Close</button>
-        </div>
+  // ── Remove scope picker (recurring only) ──
+  if(view==="removeScope") return simpleSheet(<>
+    {headerRow}
+    {scopeRow("Skip this occurrence",`Only ${fmtRelDate(occ.start)} is skipped — series continues`,()=>{onSkip(occ.key,true);onClose()})}
+    {scopeRow("Cancel from this date onwards",`End the rule starting ${fmtRelDate(occ.start)}`,handleCancelFromDate,true)}
+    <div style={{marginTop:8}}><Button variant="default" size="small" fullWidth onClick={()=>setView("actions")}>Go back</Button></div>
+  </>)
+
+  // ── Main actions ──
+  return simpleSheet(<>
+    {headerRow}
+    <div onClick={()=>setView("editForm")} style={{display:"flex",alignItems:"center",gap:12,minHeight:56,paddingTop:8,paddingBottom:8,cursor:"pointer"}}>
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18" fill={R.navy} style={{flexShrink:0}}>
+        <path d="M2.52167 14.1271L3.87289 15.4783L5.18225 14.8964L16.4101 3.66853C16.9841 3.09453 16.9841 2.16389 16.4101 1.58988C15.8361 1.01588 14.9055 1.01588 14.3315 1.58988L13.2921 2.62921L14.6213 3.95838L13.8015 4.77818L12.4723 3.44902L3.1036 12.8178L2.52167 14.1271ZM13.5117 0.770077C14.5384-0.256692 16.2032-0.256692 17.2299 0.770077C18.2567 1.79685 18.2567 3.46157 17.2299 4.48834L5.964 15.7543C5.88854 15.8297 5.79982 15.8907 5.7023 15.934L1.22291 17.9248C0.998074 18.0248 0.741433 18.0248 0.516601 17.9248C0.07776 17.7298-0.11988 17.2159 0.075161 16.7771L2.066 12.2977C2.10935 12.2002 2.17027 12.1115 2.24574 12.036L13.5117 0.770077Z"/>
+      </svg>
+      <div style={{flex:1,minWidth:0}}>
+        <p style={{fontFamily,fontWeight:700,fontSize:16,color:R.navy,margin:0,lineHeight:1.5}}>{isRecurring?"Edit service":"Edit service"}</p>
+        <p style={{fontFamily,fontSize:14,color:R.gray,margin:0,lineHeight:1.25}}>{isRecurring?"Change schedule, pets or frequency":"Update date, time or pets"}</p>
+      </div>
+      <ChevronRightIcon/>
+    </div>
+    <div onClick={()=>isRecurring?setView("removeScope"):(onCancel(occ.unit),onClose())} style={{display:"flex",alignItems:"center",gap:12,minHeight:56,paddingTop:8,paddingBottom:8,cursor:"pointer"}}>
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 32 32" fill={R.red} style={{flexShrink:0}}>
+        <path d="M13 2a1 1 0 0 0-1 1v1H5a1 1 0 1 0 0 2h1v20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6h1a1 1 0 1 0 0-2h-7V3a1 1 0 0 0-1-1h-6zm-1 6a1 1 0 0 1 1 1v14a1 1 0 1 1-2 0V9a1 1 0 0 1 1-1zm6 0a1 1 0 0 1 1 1v14a1 1 0 1 1-2 0V9a1 1 0 0 1 1-1z"/>
+      </svg>
+      <div style={{flex:1,minWidth:0}}>
+        <p style={{fontFamily,fontWeight:700,fontSize:16,color:R.red,margin:0,lineHeight:1.5}}>Cancel service</p>
+        <p style={{fontFamily,fontSize:14,color:R.gray,margin:0,lineHeight:1.25}}>{isRecurring?"Remove one or all occurrences":"Remove and refund this booking"}</p>
       </div>
     </div>
-  )
+    <div style={{marginTop:8}}><Button variant="default" size="small" fullWidth onClick={onClose}>Close</Button></div>
+  </>)
 }
 
 // ─── Delete confirmation dialog ───────────────────────────────────────────────
@@ -605,61 +644,41 @@ function DeleteConfirmDialog({unit, units, onDelete, onDeleteKeepPaid, onRefundA
   const unpaidUpcoming=occs.filter(o=>!o.skipped&&o.start>=today&&!isPaidOcc(o.start,paidThru))
   const hasPaid=paidOccs.length>0
 
-  if(isOnce&&hasPaid) return(
-    <div style={{position:"fixed",inset:0,background:"rgba(10,18,30,0.55)",zIndex:500,display:"flex",alignItems:"center",justifyContent:"center",padding:20}} onClick={onClose}>
-      <div onClick={e=>e.stopPropagation()} style={{background:"#fff",borderRadius:18,width:"100%",maxWidth:380,maxHeight:"85vh",overflowY:"auto",boxShadow:"0 12px 48px rgba(0,0,0,0.22)"}}>
-        <div style={{padding:"22px 22px 0",textAlign:"center"}}>
-          <div style={{width:56,height:56,borderRadius:"50%",background:R.redLight,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 14px",fontSize:26}}>🗑</div>
-          <div style={{fontWeight:700,fontSize:17,color:R.navy,fontFamily}}>Cancel this service?</div>
-          <div style={{fontSize:13,color:R.gray,marginTop:8,lineHeight:1.5,fontFamily}}><strong>{svc&&svc.label}</strong> on {unit.startDate?fmtDate(parseDate(unit.startDate)):"(no date)"} has already been paid.</div>
-          <div style={{background:R.amberLight,border:`1.5px solid ${R.amberBorder}`,borderRadius:10,padding:"10px 14px",marginTop:14,textAlign:"left"}}>
-            <div style={{display:"flex",alignItems:"center",gap:7}}>
-              <span style={{fontSize:15}}>💳</span>
-              <div style={{fontSize:12,color:"#7A5800",lineHeight:1.5,fontFamily}}><strong>This service was already paid.</strong> Cancelling will issue a refund per Rover's cancellation policy.</div>
-            </div>
-          </div>
-        </div>
-        <div style={{padding:"18px 22px 22px",display:"flex",flexDirection:"column",gap:8}}>
-          <button onClick={()=>{onRefundAndDelete(unit.id);onClose()}} style={{...btnDestructive,width:"100%"}}>Cancel &amp; refund</button>
-          <button onClick={onClose} style={{...btnGhost,width:"100%"}}>Go back</button>
-        </div>
-      </div>
-    </div>
-  )
-
   return(
-    <div style={{position:"fixed",inset:0,background:"rgba(10,18,30,0.55)",zIndex:500,display:"flex",alignItems:"center",justifyContent:"center",padding:20}} onClick={onClose}>
-      <div onClick={e=>e.stopPropagation()} style={{background:"#fff",borderRadius:18,width:"100%",maxWidth:380,maxHeight:"85vh",overflowY:"auto",boxShadow:"0 12px 48px rgba(0,0,0,0.22)"}}>
-        <div style={{padding:"22px 22px 0",textAlign:"center"}}>
-          <div style={{width:56,height:56,borderRadius:"50%",background:R.redLight,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 14px",fontSize:26}}>🗑</div>
-          <div style={{fontWeight:700,fontSize:17,color:R.navy,fontFamily}}>{isOnce?"Delete service?":"Delete rule?"}</div>
-          <div style={{fontSize:13,color:R.gray,marginTop:8,lineHeight:1.5,fontFamily}}>
-            {isOnce?<>This will remove <strong>{svc&&svc.label}</strong> on {unit.startDate?fmtDate(parseDate(unit.startDate)):"(no date)"}.</>:<>This will remove the <strong>{svc&&svc.label}</strong> rule.</>}
-          </div>
+    <div style={{position:"fixed",inset:0,background:"rgba(10,18,30,0.5)",zIndex:500,display:"flex",alignItems:"flex-end",justifyContent:"center"}} onClick={onClose}>
+      <div onClick={e=>e.stopPropagation()} style={{background:R.white,borderRadius:"20px 20px 0 0",width:"100%",maxWidth:480,maxHeight:"92vh",overflowY:"auto",boxShadow:"0 -8px 40px rgba(0,0,0,0.18)"}}>
+        <div style={{background:R.white,padding:"18px 16px 8px",borderRadius:"20px 20px 0 0",position:"sticky",top:0,zIndex:1}}>
+          <div style={{width:36,height:4,borderRadius:99,background:R.border,margin:"0 auto 24px"}}/>
+          <h3 style={{margin:0,fontSize:18,fontWeight:600,color:R.navy,fontFamily}}>Cancel service</h3>
+        </div>
+        <div style={{padding:"8px 16px 36px",display:"flex",flexDirection:"column",gap:12}}>
+          <p style={{margin:0,fontSize:14,color:R.gray,fontFamily,lineHeight:1.5}}>
+            {isOnce
+              ?<>This will remove <strong style={{color:R.navy}}>{svc&&svc.label}</strong> on {unit.startDate?fmtDate(parseDate(unit.startDate)):"(no date)"}. {hasPaid&&"A refund will be issued per Rover's cancellation policy."}</>
+              :<>This will remove the <strong style={{color:R.navy}}>{svc&&svc.label}</strong> rule and cancel all upcoming sessions. {hasPaid&&"Paid sessions will be refunded per Rover's cancellation policy."}</>
+            }
+          </p>
           {!isOnce&&(hasPaid||unpaidUpcoming.length>0)&&(
-            <div style={{marginTop:14,textAlign:"left"}}>
+            <div style={{display:"flex",flexDirection:"column",gap:8}}>
               {hasPaid&&(
-                <div style={{background:R.greenLight,border:`1.5px solid ${R.green}44`,borderRadius:10,padding:"10px 14px",marginBottom:8}}>
-                  <div style={{display:"flex",alignItems:"center",gap:7}}><span style={{fontSize:14}}>✓</span><div style={{fontSize:12,color:R.navy,lineHeight:1.5,fontFamily}}><strong>{paidOccs.length} paid session{paidOccs.length!==1?"s":""}</strong> — these will be kept.</div></div>
+                <div style={{background:R.greenLight,border:`1.5px solid ${R.green}44`,borderRadius:8,padding:"10px 14px"}}>
+                  <div style={{fontSize:13,color:R.navy,lineHeight:1.5,fontFamily}}><strong>{paidOccs.length} paid session{paidOccs.length!==1?"s":""}</strong> — will be refunded</div>
                 </div>
               )}
               {unpaidUpcoming.length>0&&(
-                <div style={{background:R.redLight,border:`1.5px solid ${R.red}44`,borderRadius:10,padding:"10px 14px"}}>
-                  <div style={{display:"flex",alignItems:"center",gap:7}}><span style={{fontSize:14}}>✕</span><div style={{fontSize:12,color:R.navy,lineHeight:1.5,fontFamily}}><strong>{unpaidUpcoming.length} upcoming session{unpaidUpcoming.length!==1?"s":""}</strong> — will be cancelled.</div></div>
+                <div style={{background:R.redLight,border:`1.5px solid ${R.red}44`,borderRadius:8,padding:"10px 14px"}}>
+                  <div style={{fontSize:13,color:R.navy,lineHeight:1.5,fontFamily}}><strong>{unpaidUpcoming.length} upcoming session{unpaidUpcoming.length!==1?"s":""}</strong> — will be cancelled</div>
                 </div>
               )}
             </div>
           )}
+          <Button variant="destructive" size="small" fullWidth onClick={()=>{hasPaid?onRefundAndDelete(unit.id):onDelete(unit.id);onClose()}}>
+            {hasPaid?"Cancel and refund":"Cancel service"}
+          </Button>
           {!isOnce&&hasPaid&&(
-            <div style={{background:R.amberLight,border:`1.5px solid ${R.amberBorder}`,borderRadius:10,padding:"10px 14px",marginTop:10,textAlign:"left"}}>
-              <div style={{display:"flex",alignItems:"center",gap:7}}><span style={{fontSize:15}}>💳</span><div style={{fontSize:12,color:"#7A5800",lineHeight:1.5,fontFamily}}>Want to cancel paid sessions too? They'll be refunded per Rover's cancellation policy.</div></div>
-            </div>
+            <Button variant="default" size="small" fullWidth onClick={()=>{onDeleteKeepPaid(unit.id);onClose()}}>Cancel upcoming, keep paid</Button>
           )}
-        </div>
-        <div style={{padding:"18px 22px 22px",display:"flex",flexDirection:"column",gap:8}}>
-          {!isOnce&&hasPaid&&<button onClick={()=>{onRefundAndDelete(unit.id);onClose()}} style={{...btnGhost,width:"100%",borderColor:R.red,color:R.red}}>Cancel all &amp; refund paid</button>}
-          <button onClick={()=>{hasPaid?onDeleteKeepPaid(unit.id):onDelete(unit.id);onClose()}} style={{...btnDestructive,width:"100%"}}>{hasPaid?"Delete upcoming, keep paid":isOnce?"Delete service":"Delete rule"}</button>
-          <button onClick={onClose} style={{...btnGhost,width:"100%"}}>Go back</button>
+          <Button variant="default" size="small" fullWidth onClick={onClose}>Go back</Button>
         </div>
       </div>
     </div>
@@ -838,9 +857,9 @@ function AgendaView({agenda, pets, relEndDate, paidThruSunday, onTap}){
               const showEndMarker=relEndDate&&isLastEntry
               const thisWeekMon=getWeekMonday(d)
               const thisWeekKey=dateKey(thisWeekMon)
-              let showBillingDivider=false
-              if(thisWeekKey!==lastBillingWeek&&!isPaidOcc(d,paidThruSunday)){ showBillingDivider=true; lastBillingWeek=thisWeekKey }
-              if(thisWeekKey!==lastBillingWeek&&isPaidOcc(d,paidThruSunday)&&lastBillingWeek===null){ lastBillingWeek=thisWeekKey }
+              const isWeekPaid=isPaidOcc(d,paidThruSunday)
+              let showBillingDivider=false, showPaidDivider=false
+              if(thisWeekKey!==lastBillingWeek){ if(isWeekPaid) showPaidDivider=true; else showBillingDivider=true; lastBillingWeek=thisWeekKey }
               const billingDate=addDays(thisWeekMon,-1)
               return(
                 <div key={dayKey} style={{marginBottom:16,opacity:past?0.55:1}}>
@@ -852,6 +871,16 @@ function AgendaView({agenda, pets, relEndDate, paidThruSunday, onTap}){
                         <span style={{fontSize:11,fontWeight:600,color:R.purple,fontFamily}}>Charged {fmtDate(billingDate)} (Sun)</span>
                       </div>
                       <div style={{flex:1,height:1,background:R.purpleLight,borderTop:`1px dashed #C4B5FD`}}/>
+                    </div>
+                  )}
+                  {showPaidDivider&&(
+                    <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
+                      <div style={{flex:1,height:1,background:R.greenLight,borderTop:`1px dashed ${R.brand}`}}/>
+                      <div style={{display:"flex",alignItems:"center",gap:5,background:R.greenLight,border:`1px solid ${R.brand}`,borderRadius:99,padding:"4px 12px",whiteSpace:"nowrap"}}>
+                        <span style={{fontSize:11}}>💳</span>
+                        <span style={{fontSize:11,fontWeight:600,color:R.brand,fontFamily}}>Paid — week of {fmtDate(thisWeekMon)}</span>
+                      </div>
+                      <div style={{flex:1,height:1,background:R.greenLight,borderTop:`1px dashed ${R.brand}`}}/>
                     </div>
                   )}
                   <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
@@ -870,42 +899,35 @@ function AgendaView({agenda, pets, relEndDate, paidThruSunday, onTap}){
                   {occs.map(occ=>{
                     const isSkipped=occ.skipped, overnight=occ.svc.type==="overnight"
                     const endT=!overnight?endTimeFromDuration(occ.unit.startTime,occ.unit.durationMins):null
-                    const paid=isPaidOcc(occ.start,paidThruSunday)
                     return(
-                      <div key={occ.key} onClick={()=>onTap(occ)} style={{background:isSkipped?R.disabled:R.white,borderRadius:8,marginBottom:8,cursor:"pointer",border:`1.5px solid ${isSkipped?"#DDD":R.cardBorder}`,borderLeft:`4px solid ${isSkipped?"#CCC":overnight?R.amber:R.blue}`,boxShadow:"0 1px 3px rgba(0,0,0,0.04)",overflow:"hidden",opacity:isSkipped?0.6:1}}>
-                        {overnight&&!isSkipped&&<div style={{background:`linear-gradient(90deg,${R.amberLight},#fff)`,padding:"5px 14px 0",borderBottom:`1px solid ${R.amberBorder}44`}}><span style={{fontSize:10,fontWeight:600,color:"#7A5800",fontFamily}}>🌙 Overnight stay</span></div>}
-                        <div style={{padding:"10px 14px"}}>
-                          <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:8}}>
-                            <div style={{flex:1}}>
-                              <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:4,flexWrap:"wrap"}}>
-                                <span style={{fontWeight:600,fontSize:13,color:isSkipped?R.disabledText:R.navy,fontFamily}}>
-                                  {overnight?`${fmtDate(occ.start)} – ${fmtDate(occ.end)} · ${nightCount(occ.unit)} night${nightCount(occ.unit)!==1?"s":""}`:
-                                    `${fmtTime(occ.unit.startTime)} – ${fmtTime(endT)} · ${durLabel(occ.svc,occ.unit.durationMins)}`}
-                                </span>
-                                {isSkipped&&<span style={{fontSize:10,background:"#DDD",color:"#888",fontWeight:600,padding:"2px 7px",borderRadius:99}}>Skipped</span>}
-                                {occ.isOverride&&!isSkipped&&<span style={{fontSize:10,background:R.amberLight,color:"#7A5800",fontWeight:600,padding:"2px 7px",borderRadius:99}}>✦ Override</span>}
-                                {!isSkipped&&paid&&<span style={{fontSize:10,background:R.greenLight,color:R.green,fontWeight:600,padding:"2px 7px",borderRadius:99}}>💳 Paid</span>}
+                      <div key={`${occ.key}-${occ.nightIndex||0}`} onClick={()=>onTap(occ)} style={{background:isSkipped?R.disabled:R.white,borderRadius:8,marginBottom:8,cursor:"pointer",boxShadow:"0px 1px 4px 0px rgba(27,31,35,0.24)",overflow:"hidden",opacity:isSkipped?0.6:1}}>
+                        <div style={{padding:"16px"}}>
+                          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:12}}>
+                            <div style={{flex:1,minWidth:0}}>
+                              <div style={{fontWeight:700,fontSize:16,color:isSkipped?R.disabledText:R.navy,fontFamily,lineHeight:1.5}}>
+                                {occ.svc.label}{pets.filter(p=>occ.unit.petIds.includes(p.id)).length>0&&`: ${pets.filter(p=>occ.unit.petIds.includes(p.id)).map(p=>p.name).join(", ")}`}
                               </div>
-                              <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:3}}>
-                                <span style={{fontSize:13}}>{occ.svc.icon}</span>
-                                <span style={{fontSize:12,color:isSkipped?R.disabledText:R.navyMid,fontWeight:600,fontFamily}}>{occ.svc.label}</span>
-                              </div>
-                              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:4}}>
-                                <div style={{display:"flex",alignItems:"center",gap:5,flexWrap:"wrap"}}>
-                                  <span style={{fontSize:12}}>🐾</span>
-                                  <span style={{fontSize:11,color:R.gray,fontFamily}}>{pets.filter(p=>occ.unit.petIds.includes(p.id)).map(p=>p.name).join(", ")||"—"}</span>
-                                  {(()=>{
-                                    const pu=occ.parentUnit||occ.unit
-                                    if(pu.frequency==="once") return null
-                                    const overnight2=occ.svc.type==="overnight"
-                                    const wdLabel=!overnight2&&pu.frequency==="weekly"&&(pu.weekDays||[]).length>0?pu.weekDays.slice().sort((a,b)=>a-b).map(dd=>WEEKDAYS[dd]).join(", "):null
-                                    return <span style={{fontSize:10,background:isSkipped?"#EEE":R.blueLight,color:isSkipped?R.gray:R.blue,fontWeight:600,padding:"2px 8px",borderRadius:99}}>↻ {pu.frequency}{pu.everyNWeeks>1?` ×${pu.everyNWeeks}`:""}{wdLabel?` · ${wdLabel}`:""}</span>
-                                  })()}
-                                </div>
-                                <span style={{color:R.grayLight,fontSize:11,fontWeight:600,fontFamily}}>Manage ›</span>
+                              <div style={{fontSize:14,color:R.gray,fontFamily,lineHeight:1.4}}>
+                                {overnight
+                                  ?`${fmtDate(occ.start)} to ${fmtDate(occ.end)} · ${occ.nightIndex} of ${occ.totalNights} night${occ.totalNights!==1?"s":""}`
+                                  :`${fmtRelDate(occ.start)} · ${fmtTime(occ.unit.startTime)} to ${fmtTime(endT)}`}
                               </div>
                             </div>
+                            <PetAvatar size={48} images={pets.filter(p=>occ.unit.petIds.includes(p.id)).map(p=>p.img)} />
                           </div>
+                          {(isSkipped||occ.isOverride||(()=>{const pu=occ.parentUnit||occ.unit;return pu.frequency!=="once"})())&&(
+                            <div style={{display:"flex",alignItems:"center",gap:5,flexWrap:"wrap",marginTop:8}}>
+                              {isSkipped&&<span style={{fontSize:10,background:"#DDD",color:"#888",fontWeight:600,padding:"2px 7px",borderRadius:99}}>Skipped</span>}
+                              {occ.isOverride&&!isSkipped&&<span style={{fontSize:10,background:R.amberLight,color:"#7A5800",fontWeight:600,padding:"2px 7px",borderRadius:99}}>✦ Override</span>}
+                              {(()=>{
+                                const pu=occ.parentUnit||occ.unit
+                                if(pu.frequency==="once") return null
+                                const overnight2=occ.svc.type==="overnight"
+                                const wdLabel=!overnight2&&pu.frequency==="weekly"&&(pu.weekDays||[]).length>0?pu.weekDays.slice().sort((a,b)=>a-b).map(dd=>WEEKDAYS[dd]).join(", "):null
+                                return <span style={{fontSize:10,background:isSkipped?"#EEE":R.blueLight,color:isSkipped?R.gray:R.blue,fontWeight:600,padding:"2px 8px",borderRadius:99}}>↻ {pu.frequency}{pu.everyNWeeks>1?` ×${pu.everyNWeeks}`:""}{wdLabel?` · ${wdLabel}`:""}</span>
+                              })()}
+                            </div>
+                          )}
                         </div>
                       </div>
                     )
@@ -932,8 +954,8 @@ function AgendaView({agenda, pets, relEndDate, paidThruSunday, onTap}){
 }
 
 // ─── RelationshipScreen ───────────────────────────────────────────────────────
-export default function RelationshipScreen(){
-  const [pets,       setPets]       = useState(PETS_SEED)
+export default function RelationshipScreen({ initialPets }){
+  const [pets,       setPets]       = useState(initialPets || PETS_SEED)
   const [units,      setUnits]      = useState([])
   const [relEndDate, setRelEndDate] = useState("")
   const [showAdd,    setShowAdd]    = useState(false)
@@ -968,9 +990,24 @@ export default function RelationshipScreen(){
     const dk=dateKey(occ.start)
     const parentId=occ.parentUnit?occ.parentUnit.id:occ.unit.id
     setUnits(prev=>{
-      const updated=prev.map(u=>{ if(u.id!==parentId) return u; return {...u,repeatEndDate:dateKey(addDays(occ.start,-1))} })
-      const parent=prev.find(u=>u.id===parentId); if(!parent) return updated
-      const newUnit=defaultUnit(draft.serviceId,{petIds:draft.petIds,startDate:dk,startTime:draft.startTime,durationMins:draft.durationMins,frequency:parent.frequency,weekDays:parent.weekDays,everyNWeeks:parent.everyNWeeks})
+      const parent=prev.find(u=>u.id===parentId); if(!parent) return prev
+      // End the old rule the day before this occurrence
+      const updated=prev.map(u=>u.id!==parentId?u:{...u,repeatEndDate:dateKey(addDays(occ.start,-1))})
+      // Start a new rule from this date using all draft values
+      const newUnit={
+        ...defaultUnit(draft.serviceId,{
+          petIds:draft.petIds,
+          startDate:dk,
+          startTime:draft.startTime,
+          durationMins:draft.durationMins,
+          frequency:draft.frequency,
+          weekDays:draft.weekDays,
+          everyNWeeks:draft.everyNWeeks,
+        }),
+        // Inherit the original rule's end date if it had one
+        repeatEndDate:parent.repeatEndDate||"",
+        endDate:parent.endDate||"",
+      }
       return [...updated,newUnit]
     })
   }
@@ -987,12 +1024,8 @@ export default function RelationshipScreen(){
 
       <div style={{padding:"12px 16px 20px",background:`linear-gradient(to top,${R.bg} 60%,transparent)`,flexShrink:0}}>
         <div style={{display:"flex",gap:12}}>
-          <button onClick={()=>setShowAdd(true)} style={{...btnPrimary,flex:2,display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
-            <span style={{fontSize:18}}>+</span> Add a service
-          </button>
-          <button onClick={()=>setShowManage(true)} style={{...btnGhost,flex:1,textAlign:"center",padding:"12px 16px"}}>
-            Manage ›
-          </button>
+          <Button variant="primary" size="small" onClick={()=>setShowAdd(true)} style={{flex:2}}>Add a service</Button>
+          <Button variant="default" size="small" onClick={()=>setShowManage(true)} style={{flex:1}}>Manage</Button>
         </div>
       </div>
 

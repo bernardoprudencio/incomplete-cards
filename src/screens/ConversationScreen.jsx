@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { colors, typography, shadows } from '../tokens'
 import { BackIcon, MoreIcon, ImageIcon } from '../assets/icons'
-import { peopleImages } from '../assets/images'
+import { peopleImages, petImages } from '../assets/images'
 import { Button, PetAvatar, BannerBlock, ChatBubble } from '../components'
 import RelationshipScreen from './RelationshipScreen'
 
@@ -22,6 +22,12 @@ export default function ConversationScreen({ onBack, conversation }) {
   const clientName = isToday ? 'Owen O.' : card?.client
   const clientImg  = isToday ? peopleImages.owen : peopleImages[card?.clientKey] ?? peopleImages.owen
 
+  const conversationPets = isToday
+    ? [{ id: 1, name: 'Koni', emoji: '🐕', img: petImages.koni }, { id: 2, name: 'Burley', emoji: '🐕', img: petImages.burley }]
+    : card?.id === 'archie'
+      ? [{ id: 1, name: 'Archie', emoji: '🐕', img: petImages.archie }]
+      : [{ id: 1, name: 'Milo', emoji: '🐕', img: petImages.milo }]
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'instant' })
   }, [conversation])
@@ -32,7 +38,7 @@ export default function ConversationScreen({ onBack, conversation }) {
       <div style={{
         borderBottom: `1px solid ${colors.border}`,
         boxShadow: shadows.headerShadow,
-        padding: '12px 16px', flexShrink: 0, zIndex: 3,
+        padding: '12px 16px 0', flexShrink: 0, zIndex: 3,
       }}>
         <div style={{ display: 'flex', alignItems: 'center', minHeight: 62, padding: '8px 0' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer', flexShrink: 0 }} onClick={onBack}>
@@ -50,22 +56,21 @@ export default function ConversationScreen({ onBack, conversation }) {
           <Button variant="default" style={{ flexShrink: 0 }}>Modify schedule</Button>
           <Button variant="default" style={{ flexShrink: 0 }}>Details</Button>
         </div>
-      </div>
 
-      {/* ─── Tab bar ─── */}
-      <div style={{ display: 'flex', borderBottom: `1px solid ${colors.border}`, flexShrink: 0 }}>
-        {[['messages', 'Messages'], ['schedule', 'Schedule']].map(([id, label]) => (
-          <button key={id} onClick={() => setTab(id)} style={{
-            flex: 1, padding: '11px 0', border: 'none', background: 'none', cursor: 'pointer',
-            fontFamily: typography.fontFamily, fontSize: 14, fontWeight: 600,
-            color: tab === id ? colors.link : colors.tertiary,
-            borderBottom: `2.5px solid ${tab === id ? colors.link : 'transparent'}`,
-          }}>{label}</button>
-        ))}
+        {/* ─── Tab bar ─── */}
+        <div style={{ display: 'flex', marginTop: 14 }}>
+          {[['messages', 'Messages'], ['schedule', 'Schedule']].map(([id, label]) => (
+            <Button key={id} variant="flat" onClick={() => setTab(id)} style={{
+              flex: 1, borderRadius: 0, padding: '11px 0', flexShrink: 1,
+              color: tab === id ? colors.link : colors.tertiary,
+              border: 'none', borderBottom: `2.5px solid ${tab === id ? colors.link : 'transparent'}`,
+            }}>{label}</Button>
+          ))}
+        </div>
       </div>
 
       {/* ─── Schedule tab ─── */}
-      {tab === 'schedule' && <RelationshipScreen />}
+      {tab === 'schedule' && <RelationshipScreen initialPets={conversationPets} />}
 
       {/* ─── Messages ─── */}
       {tab === 'messages' && <div className="hide-scrollbar" style={{ flex: 1, overflowY: 'auto', padding: 16, display: 'flex', flexDirection: 'column' }}>
