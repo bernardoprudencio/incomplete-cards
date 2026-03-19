@@ -1,8 +1,9 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { colors, typography, shadows } from '../tokens'
 import { BackIcon, MoreIcon, ImageIcon } from '../assets/icons'
 import { peopleImages } from '../assets/images'
 import { Button, PetAvatar, BannerBlock, ChatBubble } from '../components'
+import RelationshipScreen from './RelationshipScreen'
 
 const DayDivider = ({ label }) => (
   <div style={{ display: 'flex', justifyContent: 'center', padding: '16px 0' }}>
@@ -15,6 +16,7 @@ const Gap = ({ h = 12 }) => <div style={{ height: h }} />
 export default function ConversationScreen({ onBack, conversation }) {
   const { type, card, resolution, timestamp } = conversation || {}
   const messagesEndRef = useRef(null)
+  const [tab, setTab] = useState('messages')
 
   const isToday = type === 'today'
   const clientName = isToday ? 'Owen O.' : card?.client
@@ -50,8 +52,23 @@ export default function ConversationScreen({ onBack, conversation }) {
         </div>
       </div>
 
+      {/* ─── Tab bar ─── */}
+      <div style={{ display: 'flex', borderBottom: `1px solid ${colors.border}`, flexShrink: 0 }}>
+        {[['messages', 'Messages'], ['schedule', 'Schedule']].map(([id, label]) => (
+          <button key={id} onClick={() => setTab(id)} style={{
+            flex: 1, padding: '11px 0', border: 'none', background: 'none', cursor: 'pointer',
+            fontFamily: typography.fontFamily, fontSize: 14, fontWeight: 600,
+            color: tab === id ? colors.link : colors.tertiary,
+            borderBottom: `2.5px solid ${tab === id ? colors.link : 'transparent'}`,
+          }}>{label}</button>
+        ))}
+      </div>
+
+      {/* ─── Schedule tab ─── */}
+      {tab === 'schedule' && <RelationshipScreen />}
+
       {/* ─── Messages ─── */}
-      <div className="hide-scrollbar" style={{ flex: 1, overflowY: 'auto', padding: 16, display: 'flex', flexDirection: 'column' }}>
+      {tab === 'messages' && <div className="hide-scrollbar" style={{ flex: 1, overflowY: 'auto', padding: 16, display: 'flex', flexDirection: 'column' }}>
 
         {/* ── Owen · Koni & Burley · Today's walk ── */}
         {isToday && (
@@ -142,10 +159,10 @@ export default function ConversationScreen({ onBack, conversation }) {
         )}
 
         <div ref={messagesEndRef} />
-      </div>
+      </div>}
 
       {/* ─── Composer ─── */}
-      <div style={{
+      {tab === 'messages' && <div style={{
         borderTop: `1px solid ${colors.border}`, padding: '8px 12px',
         display: 'flex', gap: 8, alignItems: 'flex-end', flexShrink: 0,
       }}>
@@ -154,7 +171,7 @@ export default function ConversationScreen({ onBack, conversation }) {
           flex: 1, border: `2px solid ${colors.borderInteractive}`,
           borderRadius: 4, height: 32, boxSizing: 'border-box',
         }} />
-      </div>
+      </div>}
     </div>
   )
 }
