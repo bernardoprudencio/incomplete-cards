@@ -1,4 +1,5 @@
 export { default as Button } from './Button'
+export { default as Row } from './Row'
 export { default as PetAvatar } from './PetAvatar'
 export { default as UserAvatar } from './UserAvatar'
 export { default as BannerBlock } from './BannerBlock'

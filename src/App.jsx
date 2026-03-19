@@ -6,14 +6,13 @@ import { ActionSheet, ReviewSheet } from './components'
 import { HomeScreen, ConversationScreen } from './screens'
 
 export default function App() {
-  const [screen, setScreen] = useState('home')
-  const [actionSheet, setActionSheet] = useState(false)
-  const [reviewSheet, setReviewSheet] = useState(false)
-  const [resolution, setResolution] = useState(null)
-  const [resolutionTimestamp, setResolutionTimestamp] = useState(null)
-  const [cardResolved, setCardResolved] = useState(false)
-  const [transition, setTransition] = useState(false)
-  const [direction, setDirection] = useState('forward')
+  const [screen, setScreen]             = useState('home')
+  const [actionSheetCard, setActionSheetCard] = useState(null)
+  const [reviewSheetCard, setReviewSheetCard] = useState(null)
+  const [resolvedCards, setResolvedCards]     = useState({})
+  const [conversation, setConversation]       = useState(null)
+  const [transition, setTransition]     = useState(false)
+  const [direction, setDirection]       = useState('forward')
   const loadTime = useLoadTime()
 
   const navigateTo = (target, dir = 'forward') => {
@@ -23,6 +22,22 @@ export default function App() {
       setScreen(target)
       setTransition(false)
     }, 200)
+  }
+
+  const handleComplete = (card) => {
+    const ts = formatActionTimestamp()
+    setResolvedCards(prev => ({ ...prev, [card.id]: { resolution: 'completed', timestamp: ts } }))
+    setReviewSheetCard(null)
+    setConversation({ type: 'incomplete', card, resolution: 'completed', timestamp: ts })
+    setTimeout(() => navigateTo('conversation', 'forward'), 200)
+  }
+
+  const handleCancelRefund = (card) => {
+    const ts = formatActionTimestamp()
+    setResolvedCards(prev => ({ ...prev, [card.id]: { resolution: 'cancelled', timestamp: ts } }))
+    setReviewSheetCard(null)
+    setConversation({ type: 'incomplete', card, resolution: 'cancelled', timestamp: ts })
+    setTimeout(() => navigateTo('conversation', 'forward'), 200)
   }
 
   return (
@@ -38,50 +53,47 @@ export default function App() {
       }}>
         {screen === 'home' && (
           <HomeScreen
-            onOpenActionSheet={() => setActionSheet(true)}
-            onOpenReviewSheet={() => setReviewSheet(true)}
-            onNavigateConversation={() => navigateTo('conversation', 'forward')}
-            cardResolved={cardResolved}
+            resolvedCards={resolvedCards}
             loadTime={loadTime}
+            onOpenActionSheet={(card) => setActionSheetCard(card)}
+            onOpenReviewSheet={(card) => setReviewSheetCard(card)}
+            onNavigateConversation={() => {
+              setConversation({ type: 'today' })
+              navigateTo('conversation', 'forward')
+            }}
           />
         )}
         {screen === 'conversation' && (
-          <ConversationScreen onBack={() => navigateTo('home', 'back')} resolution={resolution} resolutionTimestamp={resolutionTimestamp} />
+          <ConversationScreen
+            conversation={conversation}
+            onBack={() => navigateTo('home', 'back')}
+          />
         )}
       </div>
 
-      {/* Action Sheet overlay */}
       <ActionSheet
-        visible={actionSheet}
-        onClose={() => setActionSheet(false)}
+        visible={!!actionSheetCard}
+        card={actionSheetCard}
+        onClose={() => setActionSheetCard(null)}
         onGoToConversation={() => {
-          setActionSheet(false)
+          setConversation({ type: 'incomplete', card: actionSheetCard })
+          setActionSheetCard(null)
           setTimeout(() => navigateTo('conversation', 'forward'), 200)
         }}
         onReviewAndComplete={() => {
-          setActionSheet(false)
-          setTimeout(() => setReviewSheet(true), 200)
-        }}
-      />
-      <ReviewSheet
-        visible={reviewSheet}
-        onClose={() => setReviewSheet(false)}
-        onComplete={() => {
-          setResolution('completed')
-          setResolutionTimestamp(formatActionTimestamp())
-          setCardResolved(true)
-          setReviewSheet(false)
-          setTimeout(() => navigateTo('conversation', 'forward'), 200)
-        }}
-        onCancelRefund={() => {
-          setResolution('cancelled')
-          setResolutionTimestamp(formatActionTimestamp())
-          setCardResolved(true)
-          setReviewSheet(false)
-          setTimeout(() => navigateTo('conversation', 'forward'), 200)
+          const card = actionSheetCard
+          setActionSheetCard(null)
+          setTimeout(() => setReviewSheetCard(card), 200)
         }}
       />
 
+      <ReviewSheet
+        visible={!!reviewSheetCard}
+        card={reviewSheetCard}
+        onClose={() => setReviewSheetCard(null)}
+        onComplete={() => handleComplete(reviewSheetCard)}
+        onCancelRefund={() => handleCancelRefund(reviewSheetCard)}
+      />
     </div>
   )
 }

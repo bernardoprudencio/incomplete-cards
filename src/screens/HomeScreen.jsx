@@ -1,16 +1,22 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { colors, typography, shadows } from '../tokens'
-import { BellIcon, ChevronUpIcon, EditIcon, MoreIcon } from '../assets/icons'
+import { BellIcon, ChevronUpIcon, ChevronDownIcon, EditIcon, MoreIcon } from '../assets/icons'
 import { petImages } from '../assets/images'
 import { formatHeaderDate } from '../hooks/useDate'
-import { Button, PetAvatar, UserAvatar, TabBar, HomeCard } from '../components'
+import { Button, PetAvatar, UserAvatar, TabBar, HomeCard, Row } from '../components'
+import { INCOMPLETE_CARDS } from '../data/bookings'
 
 const PROMO_CARDS = [
   { bg: colors.yellow100, title: 'Promote your profile', desc: 'Invite new pet parents and grow your business.', cta: 'Learn how', img: petImages.promo1 },
   { bg: colors.cyan100, title: 'Share more, earn more', desc: 'Earn a $100 reward for every two customers you invite who book.', cta: 'Start Sharing', img: petImages.promo2 },
 ]
 
-export default function HomeScreen({ onOpenActionSheet, onOpenReviewSheet, onNavigateConversation, cardResolved, loadTime }) {
+export default function HomeScreen({ resolvedCards, onOpenActionSheet, onOpenReviewSheet, onNavigateConversation, loadTime }) {
+  const [incompleteOpen, setIncompleteOpen] = useState(true)
+
+  const visibleCards = INCOMPLETE_CARDS.filter(c => !resolvedCards[c.id])
+  const hasIncomplete = visibleCards.length > 0
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: colors.white }}>
       {/* ─── Header ─── */}
@@ -31,35 +37,43 @@ export default function HomeScreen({ onOpenActionSheet, onOpenReviewSheet, onNav
       <div className="hide-scrollbar" style={{ flex: 1, overflowY: 'auto', padding: '24px 16px' }}>
         <p style={{ fontFamily: typography.fontFamily, fontSize: 14, color: colors.tertiary, margin: '0 0 8px' }}>Updated at {loadTime}</p>
 
-        {/* Incomplete section header */}
-        {!cardResolved && (
+        {/* ─── Incomplete section ─── */}
+        {hasIncomplete && (
           <>
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: '24px 0 8px' }}>
+            <div onClick={() => setIncompleteOpen(o => !o)} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: '24px 0 8px', cursor: 'pointer' }}>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ fontFamily: typography.fontFamily, fontWeight: 700, fontSize: 20, lineHeight: 1.25, color: colors.primary, margin: 0 }}>Incomplete (1)</p>
-                <p style={{ fontFamily: typography.fontFamily, fontSize: 14, color: colors.tertiary, margin: '4px 0 0' }}>Complete all services to get paid on time.</p>
+                <p style={{ fontFamily: typography.fontFamily, fontWeight: 700, fontSize: 20, lineHeight: 1.25, color: colors.primary, margin: 0 }}>
+                  Incomplete ({visibleCards.length})
+                </p>
+                <p style={{ fontFamily: typography.fontFamily, fontSize: 14, color: colors.tertiary, margin: '4px 0 0' }}>
+                  Complete all services to get paid on time.
+                </p>
               </div>
-              <div style={{ flexShrink: 0 }}><ChevronUpIcon /></div>
+              <div style={{ flexShrink: 0 }}>{incompleteOpen ? <ChevronUpIcon /> : <ChevronDownIcon />}</div>
             </div>
 
-            {/* Incomplete card */}
-            <div style={{ border: `1px solid ${colors.border}`, borderRadius: 8, padding: '0 16px 16px', background: colors.white }}>
-              <div style={{ display: 'flex', gap: 8, alignItems: 'center', padding: '16px 0' }}>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <p style={{ fontFamily: typography.fontFamily, fontWeight: 700, fontSize: 16, lineHeight: 1.5, color: colors.primary, margin: 0 }}>Dog Walking: Archie</p>
-                  <p style={{ fontFamily: typography.fontFamily, fontSize: 14, lineHeight: 1.25, color: colors.tertiary, margin: 0 }}>Yesterday · 12:00 PM to 12:30 PM</p>
-                </div>
-                <PetAvatar size={48} images={[petImages.archie]} />
+            {incompleteOpen && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {visibleCards.map((card) => (
+                  <div key={card.id} style={{ border: `1px solid ${colors.border}`, borderRadius: 8, padding: '0 16px 16px', background: colors.white }}>
+                    <Row
+                      label={card.label}
+                      sublabel={card.sublabel}
+                      rightItem={<PetAvatar size={48} images={[petImages[card.petKey]]} />}
+                      firstRow
+                    />
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <Button variant="default" style={{ flex: 1 }} onClick={() => onOpenReviewSheet(card)}>Review and complete</Button>
+                      <Button variant="default" icon={<MoreIcon />} onClick={() => onOpenActionSheet(card)} />
+                    </div>
+                  </div>
+                ))}
               </div>
-              <div style={{ display: 'flex', gap: 8 }}>
-                <Button variant="default" style={{ flex: 1 }} onClick={onOpenReviewSheet}>Review and complete</Button>
-                <Button variant="default" icon={<MoreIcon />} onClick={onOpenActionSheet} />
-              </div>
-            </div>
+            )}
           </>
         )}
 
-        {/* Today section */}
+        {/* ─── Today section ─── */}
         <p style={{ fontFamily: typography.fontFamily, fontWeight: 700, fontSize: 20, lineHeight: 1.25, color: colors.primary, margin: '24px 0 8px' }}>Today</p>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -76,14 +90,13 @@ export default function HomeScreen({ onOpenActionSheet, onOpenReviewSheet, onNav
             petImages={[petImages.koni, petImages.burley]}
             buttonLabel="Start Rover Card" disabled
           />
-          {/* Manage card */}
           <div style={{ background: colors.white, borderRadius: 8, boxShadow: shadows.low, padding: 20, display: 'flex', gap: 12, alignItems: 'center' }}>
             <div style={{ flexShrink: 0 }}><EditIcon /></div>
             <p style={{ fontFamily: typography.fontFamily, fontWeight: 700, fontSize: 14, color: colors.primary, margin: 0, flex: 1 }}>Manage weekly care for this week</p>
           </div>
         </div>
 
-        {/* Rover recommends */}
+        {/* ─── Rover recommends ─── */}
         <p style={{ fontFamily: typography.fontFamily, fontWeight: 700, fontSize: 20, lineHeight: 1.25, color: colors.primary, margin: '24px 0 8px' }}>Rover recommends</p>
         <div style={{ display: 'flex', flexDirection: 'row', gap: 12, paddingBottom: 24 }}>
           {PROMO_CARDS.map((c, i) => (

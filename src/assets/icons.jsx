@@ -12,12 +12,29 @@ const Icon = ({ name, size = 24, color = c.primary, style = {} }) => (
 
 export const BackIcon = () => <Icon name="in-arrow-left" />
 export const BellIcon = () => <Icon name="in-bell" />
-export const ChevronUpIcon = () => <Icon name="in-up" />
-export const ChevronRightIcon = () => <Icon name="in-right" size={20} color={c.tertiary} />
+export const ChevronUpIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 32 32" fill={c.tertiary}>
+    <path d="M22.35 19.6L16 14.159l-6.35 5.443a1 1 0 1 1-1.3-1.519l6.674-5.72a1.5 1.5 0 0 1 1.952 0l6.675 5.72a1 1 0 0 1-1.302 1.519z"/>
+  </svg>
+)
+export const ChevronDownIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 32 32" fill={c.tertiary}>
+    <path d="M22.35 12.24a1 1 0 1 1 1.3 1.52l-6.674 5.72a1.5 1.5 0 0 1-1.952 0l-6.675-5.72a1 1 0 0 1 1.302-1.52L16 17.684l6.35-5.442z"/>
+  </svg>
+)
+export const ChevronRightIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 32 32" fill={c.tertiary}>
+    <path d="M12.32 22.27l5.442-6.35-5.442-6.348a1 1 0 1 1 1.518-1.302l5.722 6.675a1.5 1.5 0 0 1 0 1.952l-5.721 6.675a1 1 0 1 1-1.519-1.302z"/>
+  </svg>
+)
 export const EditIcon = () => <Icon name="in-edit" />
 export const ClockIcon = () => <Icon name="in-clock" color="#D59418" />
 export const ImageIcon = () => <Icon name="in-file-image" size={16} color={c.secondary} />
-export const MapIcon = () => <Icon name="in-map-marker" size={16} />
+export const MapIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 32 32" fill={c.primary}>
+    <path d="M26 12c0-6.089-4.172-10-10-10S6 5.911 6 12c0 4.193 3.315 10.068 10 17.512C22.685 22.068 26 16.192 26 12zM4 12C4 4.777 9.095 0 16 0s12 4.777 12 12c0 4.905-3.649 11.288-10.89 19.266a1.5 1.5 0 0 1-2.118.103c-.053-.05-.053-.05-.103-.103C7.65 23.288 4 16.906 4 12zm12 4a5 5 0 1 1 0-10 5 5 0 0 1 0 10zm0-2a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
+  </svg>
+)
 export const CheckIcon = () => <Icon name="in-check" size={16} color={c.tertiary} />
 export const HomeFilledIcon = ({ color = c.primary }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 32 32" fill={color}>
@@ -56,12 +73,10 @@ export const MoreTabIcon = ({ color = c.tertiary }) => (
 )
 
 export const PawIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-    <path d="M5.5 10.5C6.5 9 9.5 9 10.5 10.5C11.5 12 10 14 8 14C6 14 4.5 12 5.5 10.5Z" stroke={c.primary} strokeWidth="1.2"/>
-    <ellipse cx="4" cy="7" rx="1.5" ry="2" stroke={c.primary} strokeWidth="1.2"/>
-    <ellipse cx="7" cy="5" rx="1.3" ry="1.8" stroke={c.primary} strokeWidth="1.2"/>
-    <ellipse cx="9.5" cy="5" rx="1.3" ry="1.8" stroke={c.primary} strokeWidth="1.2"/>
-    <ellipse cx="12" cy="7" rx="1.5" ry="2" stroke={c.primary} strokeWidth="1.2"/>
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 32 32" fill={c.primary}>
+    <path d="M11.506 9.287c-1.52 0-2.755-1.603-2.755-3.581s1.233-3.581 2.755-3.581c1.521 0 2.755 1.603 2.755 3.581s-1.234 3.581-2.755 3.581Z"/>
+    <path fillRule="evenodd" d="M22.463 30.549c-1.34 0-2.634-.483-3.711-1.4l-.358-.307C17.3 27.9 16.877 27.574 16 27.574c-.877 0-1.3.326-2.394 1.269l-.358.307c-1.288 1.098-2.886 1.571-4.5 1.345-1.679-.238-3.152-1.2-4.15-2.709-1.943-2.94-1.403-7.137 1.204-9.354l7.446-6.336c1.619-1.379 3.885-1.379 5.504 0l7.446 6.336c2.607 2.218 3.147 6.414 1.204 9.354-.997 1.509-2.471 2.471-4.149 2.709a5.86 5.86 0 0 1-.79.054ZM16 25.074c1.851 0 2.858.868 4.025 1.874l.346.297c.735.626 1.638.901 2.53.773.961-.136 1.818-.709 2.415-1.612 1.271-1.921.939-4.645-.737-6.071l-7.446-6.336c-.689-.586-1.576-.586-2.266 0l-7.446 6.336c-1.677 1.427-2.008 4.15-.737 6.071.598.903 1.455 1.477 2.415 1.612.896.127 1.793-.147 2.53-.773l.346-.297c1.167-1.006 2.174-1.874 4.025-1.874Z" clipRule="evenodd"/>
+    <path d="M17.74 5.706c0 1.978 1.233 3.581 2.754 3.581s2.755-1.603 2.755-3.581-1.234-3.581-2.755-3.581c-1.522 0-2.755 1.603-2.755 3.581Zm9.733 8.718c-1.38 0-2.5-1.357-2.5-3.03 0-1.673 1.12-3.03 2.5-3.03 1.381 0 2.5 1.357 2.5 3.03 0 1.673-1.119 3.03-2.5 3.03ZM2.02 11.394c0 1.673 1.12 3.03 2.5 3.03 1.381 0 2.5-1.357 2.5-3.03 0-1.673-1.119-3.03-2.5-3.03-1.38 0-2.5 1.357-2.5 3.03Z"/>
   </svg>
 )
 
