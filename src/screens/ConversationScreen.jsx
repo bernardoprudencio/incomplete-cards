@@ -1,6 +1,6 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { colors, typography, shadows } from '../tokens'
-import { BackIcon, MoreIcon, ImageIcon } from '../assets/icons'
+import { BackIcon, MoreIcon, ImageIcon, SendIcon } from '../assets/icons'
 import { peopleImages } from '../assets/images'
 import { Button, PetAvatar, BannerBlock, ChatBubble } from '../components'
 
@@ -12,9 +12,21 @@ const DayDivider = ({ label }) => (
 
 const Gap = ({ h = 12 }) => <div style={{ height: h }} />
 
-export default function ConversationScreen({ onBack, conversation }) {
-  const { type, card, resolution, timestamp } = conversation || {}
+export default function ConversationScreen({ onBack, onModifySchedule, conversation }) {
+  const { type, card, resolution, timestamp, scheduleChanges } = conversation || {}
   const messagesEndRef = useRef(null)
+  const [text, setText] = useState('')
+  const [sentMessages, setSentMessages] = useState([])
+
+  const sendMessage = () => {
+    const trimmed = text.trim()
+    if (!trimmed) return
+    const now = new Date()
+    const h = now.getHours(), m = now.getMinutes()
+    const time = `${h % 12 || 12}:${String(m).padStart(2, '0')} ${h >= 12 ? 'PM' : 'AM'}`
+    setSentMessages(prev => [...prev, { id: Date.now(), text: trimmed, time }])
+    setText('')
+  }
 
   const isToday = type === 'today'
   const clientName = isToday ? 'Owen O.' : card?.client
@@ -23,6 +35,10 @@ export default function ConversationScreen({ onBack, conversation }) {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'instant' })
   }, [conversation])
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [sentMessages])
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: colors.white }}>
@@ -45,7 +61,7 @@ export default function ConversationScreen({ onBack, conversation }) {
         </div>
         <div className="hide-scrollbar" style={{ display: 'flex', gap: 8, paddingTop: 12, overflowX: 'auto', paddingBottom: 14, marginBottom: -14 }}>
           <Button variant="primary" style={{ boxShadow: shadows.medium, flexShrink: 0 }}>Leave feedback</Button>
-          <Button variant="default" style={{ flexShrink: 0 }}>Modify schedule</Button>
+          <Button variant="default" style={{ flexShrink: 0 }} onClick={onModifySchedule}>Modify schedule</Button>
           <Button variant="default" style={{ flexShrink: 0 }}>Details</Button>
         </div>
       </div>
@@ -93,17 +109,9 @@ export default function ConversationScreen({ onBack, conversation }) {
             <ChatBubble message="Thanks! How did he do?" time="1:15 PM" />
             <ChatBubble message="He was great once he warmed up! Really loved sniffing around the trail" time="1:18 PM" isOwner showCheck />
             <ChatBubble message="Ha, that sounds exactly like him. Thanks again!" time="1:20 PM" />
-            {resolution && (
-              <>
-                <DayDivider label="Today" />
-                {resolution === 'completed' && (
-                  <BannerBlock text={`Walk from ${card.dateLabel} was marked as complete on ${timestamp}.`} />
-                )}
-                {resolution === 'cancelled' && (
-                  <BannerBlock text={`Walk from ${card.dateLabel} was cancelled on ${timestamp}. A refund of ${card.cost} has been processed.`} />
-                )}
-              </>
-            )}
+            {(resolution || scheduleChanges?.length > 0) && <DayDivider label="Today" />}
+            {resolution === 'completed' && <BannerBlock text={`Walk from ${card.dateLabel} was marked as complete on ${timestamp}.`} />}
+            {resolution === 'cancelled' && <BannerBlock text={`Walk from ${card.dateLabel} was cancelled on ${timestamp}. A refund of ${card.cost} has been processed.`} />}
           </>
         )}
 
@@ -127,19 +135,34 @@ export default function ConversationScreen({ onBack, conversation }) {
             <DayDivider label="Mar 13" />
             <ChatBubble message="Hi! Just checking in — I didn't get a Rover Card notification. Was one started?" time="10:12 AM" />
 
-            {resolution && (
-              <>
-                <DayDivider label="Today" />
-                {resolution === 'completed' && (
-                  <BannerBlock text={`Walk from ${card.dateLabel} was marked as complete on ${timestamp}.`} />
-                )}
-                {resolution === 'cancelled' && (
-                  <BannerBlock text={`Walk from ${card.dateLabel} was cancelled on ${timestamp}. A refund of ${card.cost} has been processed.`} />
-                )}
-              </>
-            )}
+            {(resolution || scheduleChanges?.length > 0) && <DayDivider label="Today" />}
+            {resolution === 'completed' && <BannerBlock text={`Walk from ${card.dateLabel} was marked as complete on ${timestamp}.`} />}
+            {resolution === 'cancelled' && <BannerBlock text={`Walk from ${card.dateLabel} was cancelled on ${timestamp}. A refund of ${card.cost} has been processed.`} />}
           </>
         )}
+
+        {/* ── Schedule update message — no divider, already placed above ── */}
+        {scheduleChanges?.length > 0 && (
+          <ChatBubble
+            message={[
+              'I made changes to the upcoming schedule. Here\'s a summary:',
+              ...scheduleChanges.map(c => {
+                const parts = []
+                c.removed.forEach(t => parts.push(`${c.day}, ${c.date}: removed ${t}`))
+                c.added.forEach(t => parts.push(`${c.day}, ${c.date}: added ${t}`))
+                if (!c.removed.length && !c.added.length) parts.push(`${c.day}, ${c.date}: removed`)
+                return parts.join('\n')
+              }),
+            ].join('\n')}
+            time="Just now"
+            isOwner
+            showCheck
+          />
+        )}
+
+        {sentMessages.map(msg => (
+          <ChatBubble key={msg.id} message={msg.text} time={msg.time} isOwner showCheck />
+        ))}
 
         <div ref={messagesEndRef} />
       </div>
@@ -147,13 +170,31 @@ export default function ConversationScreen({ onBack, conversation }) {
       {/* ─── Composer ─── */}
       <div style={{
         borderTop: `1px solid ${colors.border}`, padding: '8px 12px',
-        display: 'flex', gap: 8, alignItems: 'flex-end', flexShrink: 0,
+        display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0,
       }}>
         <Button variant="default" icon={<ImageIcon />} />
-        <div style={{
-          flex: 1, border: `2px solid ${colors.borderInteractive}`,
-          borderRadius: 4, height: 32, boxSizing: 'border-box',
-        }} />
+        <input
+          value={text}
+          onChange={e => setText(e.target.value)}
+          onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage() } }}
+          placeholder="Message"
+          style={{
+            flex: 1,
+            height: 44,
+            border: `2px solid ${colors.borderInteractive}`,
+            borderRadius: 8,
+            padding: '0 16px',
+            fontFamily: typography.fontFamily,
+            fontSize: 16,
+            color: colors.primary,
+            background: colors.white,
+            outline: 'none',
+            boxSizing: 'border-box',
+          }}
+        />
+        {text.trim() && (
+          <Button variant="primary" icon={<SendIcon />} onClick={sendMessage} />
+        )}
       </div>
     </div>
   )
