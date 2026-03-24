@@ -3,8 +3,14 @@ import { colors, typography } from './tokens'
 import { useLoadTime } from './hooks/useLoadTime'
 import { formatActionTimestamp } from './hooks/useDate'
 import { ActionSheet, ReviewSheet } from './components'
-import { HomeScreen, ConversationScreen } from './screens'
+import { HomeScreen, ConversationScreen, ScheduleScreen } from './screens'
+import { OWNERS } from './data/owners'
 import { petImages } from './assets/images'
+
+const getOwner = (conv) => {
+  if (!conv || conv.type === 'today') return OWNERS.owen
+  return OWNERS[conv.card?.clientKey] ?? OWNERS.owen
+}
 
 export default function App() {
   const [screen, setScreen]         = useState('home')
@@ -12,6 +18,7 @@ export default function App() {
   const [reviewSheetCard, setReviewSheetCard] = useState(null)
   const [resolvedCards, setResolvedCards] = useState({})
   const [conversation, setConversation]   = useState(null)
+  const [liveEvents, setLiveEvents]       = useState([])
   const [transition, setTransition] = useState(false)
   const [direction, setDirection]   = useState('forward')
   const loadTime = useLoadTime()
@@ -29,7 +36,8 @@ export default function App() {
     const ts = formatActionTimestamp()
     setResolvedCards(prev => ({ ...prev, [card.id]: { resolution: 'completed', timestamp: ts } }))
     setReviewSheetCard(null)
-    setConversation({ type: 'incomplete', card, resolution: 'completed', timestamp: ts })
+    setLiveEvents(prev => [...prev, { id: Date.now(), type: 'resolution', resolution: 'completed', timestamp: ts, card }])
+    setConversation({ type: 'incomplete', card })
     setTimeout(() => navigateTo('conversation', 'forward'), 200)
   }
 
@@ -37,7 +45,8 @@ export default function App() {
     const ts = formatActionTimestamp()
     setResolvedCards(prev => ({ ...prev, [card.id]: { resolution: 'cancelled', timestamp: ts } }))
     setReviewSheetCard(null)
-    setConversation({ type: 'incomplete', card, resolution: 'cancelled', timestamp: ts })
+    setLiveEvents(prev => [...prev, { id: Date.now(), type: 'resolution', resolution: 'cancelled', timestamp: ts, card }])
+    setConversation({ type: 'incomplete', card })
     setTimeout(() => navigateTo('conversation', 'forward'), 200)
   }
 
@@ -88,7 +97,21 @@ export default function App() {
         {screen === 'conversation' && (
           <ConversationScreen
             conversation={conversation}
+            liveEvents={liveEvents}
+            onLiveEvent={(event) => setLiveEvents(prev => [...prev, event])}
             onBack={() => navigateTo('home', 'back')}
+            onModifySchedule={() => navigateTo('schedule', 'forward')}
+          />
+        )}
+        {screen === 'schedule' && (
+          <ScheduleScreen
+            owner={getOwner(conversation)}
+            onBack={(savedChanges) => {
+              if (savedChanges?.length) {
+                setLiveEvents(prev => [...prev, { id: Date.now(), type: 'scheduleChange', changes: savedChanges }])
+              }
+              navigateTo('conversation', 'back')
+            }}
           />
         )}
       </div>

@@ -13,12 +13,11 @@ const DayDivider = ({ label }) => (
 
 const Gap = ({ h = 12 }) => <div style={{ height: h }} />
 
-export default function ConversationScreen({ onBack, onModifySchedule, conversation }) {
-  const { type, card, resolution, timestamp, scheduleChanges } = conversation || {}
+export default function ConversationScreen({ onBack, onModifySchedule, conversation, liveEvents = [], onLiveEvent }) {
+  const { type, card } = conversation || {}
   const messagesEndRef = useRef(null)
   const [tab, setTab] = useState('messages')
   const [text, setText] = useState('')
-  const [sentMessages, setSentMessages] = useState([])
 
   const sendMessage = () => {
     const trimmed = text.trim()
@@ -26,7 +25,7 @@ export default function ConversationScreen({ onBack, onModifySchedule, conversat
     const now = new Date()
     const h = now.getHours(), m = now.getMinutes()
     const time = `${h % 12 || 12}:${String(m).padStart(2, '0')} ${h >= 12 ? 'PM' : 'AM'}`
-    setSentMessages(prev => [...prev, { id: Date.now(), text: trimmed, time }])
+    onLiveEvent({ id: Date.now(), type: 'message', text: trimmed, time })
     setText('')
   }
 
@@ -46,7 +45,7 @@ export default function ConversationScreen({ onBack, onModifySchedule, conversat
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [sentMessages])
+  }, [liveEvents])
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: colors.white }}>
@@ -131,9 +130,6 @@ export default function ConversationScreen({ onBack, onModifySchedule, conversat
             <ChatBubble message="Thanks! How did he do?" time="1:15 PM" />
             <ChatBubble message="He was great once he warmed up! Really loved sniffing around the trail" time="1:18 PM" isOwner showCheck />
             <ChatBubble message="Ha, that sounds exactly like him. Thanks again!" time="1:20 PM" />
-            {(resolution || scheduleChanges?.length > 0) && <DayDivider label="Today" />}
-            {resolution === 'completed' && <BannerBlock text={`Walk from ${card.dateLabel} was marked as complete on ${timestamp}.`} />}
-            {resolution === 'cancelled' && <BannerBlock text={`Walk from ${card.dateLabel} was cancelled on ${timestamp}. A refund of ${card.cost} has been processed.`} />}
           </>
         )}
 
@@ -157,34 +153,42 @@ export default function ConversationScreen({ onBack, onModifySchedule, conversat
             <DayDivider label="Mar 13" />
             <ChatBubble message="Hi! Just checking in — I didn't get a Rover Card notification. Was one started?" time="10:12 AM" />
 
-            {(resolution || scheduleChanges?.length > 0) && <DayDivider label="Today" />}
-            {resolution === 'completed' && <BannerBlock text={`Walk from ${card.dateLabel} was marked as complete on ${timestamp}.`} />}
-            {resolution === 'cancelled' && <BannerBlock text={`Walk from ${card.dateLabel} was cancelled on ${timestamp}. A refund of ${card.cost} has been processed.`} />}
           </>
         )}
 
-        {/* ── Schedule update message — no divider, already placed above ── */}
-        {scheduleChanges?.length > 0 && (
-          <ChatBubble
-            message={[
-              'I made changes to the upcoming schedule. Here\'s a summary:',
-              ...scheduleChanges.map(c => {
-                const parts = []
-                c.removed.forEach(t => parts.push(`${c.day}, ${c.date}: removed ${t}`))
-                c.added.forEach(t => parts.push(`${c.day}, ${c.date}: added ${t}`))
-                if (!c.removed.length && !c.added.length) parts.push(`${c.day}, ${c.date}: removed`)
-                return parts.join('\n')
-              }),
-            ].join('\n')}
-            time="Just now"
-            isOwner
-            showCheck
-          />
-        )}
-
-        {sentMessages.map(msg => (
-          <ChatBubble key={msg.id} message={msg.text} time={msg.time} isOwner showCheck />
-        ))}
+        {/* ── Live events: resolutions, schedule changes, sent messages — in order ── */}
+        {liveEvents.length > 0 && <DayDivider label="Today" />}
+        {liveEvents.map(event => {
+          if (event.type === 'message') {
+            return <ChatBubble key={event.id} message={event.text} time={event.time} isOwner showCheck />
+          }
+          if (event.type === 'resolution') {
+            return event.resolution === 'completed'
+              ? <BannerBlock key={event.id} text={`Walk from ${event.card.dateLabel} was marked as complete on ${event.timestamp}.`} />
+              : <BannerBlock key={event.id} text={`Walk from ${event.card.dateLabel} was cancelled on ${event.timestamp}. A refund of ${event.card.cost} has been processed.`} />
+          }
+          if (event.type === 'scheduleChange') {
+            return (
+              <ChatBubble
+                key={event.id}
+                message={[
+                  'I made changes to the upcoming schedule. Here\'s a summary:',
+                  ...event.changes.map(c => {
+                    const parts = []
+                    c.removed.forEach(t => parts.push(`${c.day}, ${c.date}: removed ${t}`))
+                    c.added.forEach(t => parts.push(`${c.day}, ${c.date}: added ${t}`))
+                    if (!c.removed.length && !c.added.length) parts.push(`${c.day}, ${c.date}: removed`)
+                    return parts.join('\n')
+                  }),
+                ].join('\n')}
+                time="Just now"
+                isOwner
+                showCheck
+              />
+            )
+          }
+          return null
+        })}
 
         <div ref={messagesEndRef} />
       </div>}
