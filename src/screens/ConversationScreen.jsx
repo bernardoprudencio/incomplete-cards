@@ -4,6 +4,18 @@ import { BackIcon, MoreIcon, ImageIcon, SendIcon } from '../assets/icons'
 import { peopleImages } from '../assets/images'
 import { Button, PetAvatar, BannerBlock, ChatBubble } from '../components'
 
+const fmtDayChange = (c, withDate) => {
+  const label = withDate ? `${c.day}, ${c.date}` : c.day
+  const addedStr = c.added.length ? `added ${c.added.join(', ')}` : ''
+  const removedStr = c.removed.length ? `removed ${c.removed.join(', ')}` : ''
+  let detail
+  if (addedStr && removedStr) detail = `${addedStr} and ${removedStr}`
+  else if (addedStr) detail = addedStr
+  else if (removedStr) detail = removedStr
+  else detail = 'removed'
+  return `${label}: ${detail}`
+}
+
 const DayDivider = ({ label }) => (
   <div style={{ display: 'flex', justifyContent: 'center', padding: '16px 0' }}>
     <span style={{ fontFamily: typography.fontFamily, fontWeight: 700, fontSize: 14, color: colors.tertiary }}>{label}</span>
@@ -13,7 +25,7 @@ const DayDivider = ({ label }) => (
 const Gap = ({ h = 12 }) => <div style={{ height: h }} />
 
 export default function ConversationScreen({ onBack, onModifySchedule, conversation }) {
-  const { type, card, resolution, timestamp, scheduleChanges, templateChanges } = conversation || {}
+  const { type, card, resolution, timestamp, scheduleChanges, templateChanges, currentWeekChanges } = conversation || {}
   const messagesEndRef = useRef(null)
   const [text, setText] = useState('')
   const [sentMessages, setSentMessages] = useState([])
@@ -109,7 +121,7 @@ export default function ConversationScreen({ onBack, onModifySchedule, conversat
             <ChatBubble message="Thanks! How did he do?" time="1:15 PM" />
             <ChatBubble message="He was great once he warmed up! Really loved sniffing around the trail" time="1:18 PM" isOwner showCheck />
             <ChatBubble message="Ha, that sounds exactly like him. Thanks again!" time="1:20 PM" />
-            {(resolution || scheduleChanges?.length > 0) && <DayDivider label="Today" />}
+            {(resolution || scheduleChanges?.length > 0 || currentWeekChanges?.length > 0) && <DayDivider label="Today" />}
             {resolution === 'completed' && <BannerBlock text={`Walk from ${card.dateLabel} was marked as complete on ${timestamp}.`} />}
             {resolution === 'cancelled' && <BannerBlock text={`Walk from ${card.dateLabel} was cancelled on ${timestamp}. A refund of ${card.cost} has been processed.`} />}
           </>
@@ -135,7 +147,7 @@ export default function ConversationScreen({ onBack, onModifySchedule, conversat
             <DayDivider label="Mar 13" />
             <ChatBubble message="Hi! Just checking in — I didn't get a Rover Card notification. Was one started?" time="10:12 AM" />
 
-            {(resolution || scheduleChanges?.length > 0) && <DayDivider label="Today" />}
+            {(resolution || scheduleChanges?.length > 0 || currentWeekChanges?.length > 0) && <DayDivider label="Today" />}
             {resolution === 'completed' && <BannerBlock text={`Walk from ${card.dateLabel} was marked as complete on ${timestamp}.`} />}
             {resolution === 'cancelled' && <BannerBlock text={`Walk from ${card.dateLabel} was cancelled on ${timestamp}. A refund of ${card.cost} has been processed.`} />}
           </>
@@ -146,13 +158,7 @@ export default function ConversationScreen({ onBack, onModifySchedule, conversat
           <ChatBubble
             message={[
               'I made changes to the upcoming schedule. Here\'s a summary:',
-              ...scheduleChanges.map(c => {
-                const parts = []
-                c.removed.forEach(t => parts.push(`${c.day}, ${c.date}: removed ${t}`))
-                c.added.forEach(t => parts.push(`${c.day}, ${c.date}: added ${t}`))
-                if (!c.removed.length && !c.added.length) parts.push(`${c.day}, ${c.date}: removed`)
-                return parts.join('\n')
-              }),
+              ...scheduleChanges.map(c => fmtDayChange(c, true)),
             ].join('\n')}
             time="Just now"
             isOwner
@@ -160,19 +166,26 @@ export default function ConversationScreen({ onBack, onModifySchedule, conversat
           />
         )}
 
-        {templateChanges?.length > 0 && !scheduleChanges?.length && !resolution && <DayDivider label="Today" />}
+        {templateChanges?.length > 0 && !scheduleChanges?.length && !resolution && !currentWeekChanges?.length && <DayDivider label="Today" />}
         {templateChanges?.map((changes, i) => (
           <ChatBubble
             key={i}
             message={[
               'I updated the weekly schedule template. Here\'s a summary:',
-              ...changes.map(c => {
-                const parts = []
-                c.removed.forEach(t => parts.push(`${c.day}: removed ${t}`))
-                c.added.forEach(t => parts.push(`${c.day}: added ${t}`))
-                if (!c.removed.length && !c.added.length) parts.push(`${c.day}: removed`)
-                return parts.join('\n')
-              }),
+              ...changes.map(c => fmtDayChange(c, false)),
+            ].join('\n')}
+            time="Just now"
+            isOwner
+            showCheck
+          />
+        ))}
+
+        {currentWeekChanges?.map((changes, i) => (
+          <ChatBubble
+            key={i}
+            message={[
+              'I made changes to this week\'s schedule. Here\'s a summary:',
+              ...changes.map(c => fmtDayChange(c, true)),
             ].join('\n')}
             time="Just now"
             isOwner

@@ -381,7 +381,7 @@ const TemplateCard = ({ owner, onEditTemplate }) => (
   </WhiteCard>
 )
 
-const CurrentWeekCard = ({ owner }) => {
+const CurrentWeekCard = ({ owner, onManage }) => {
   // Always use the original static template — current week is never affected by template edits
   const originalOwner = OWNERS[owner.id] ?? owner
   const currentWeekDays = getOwnerCurrentWeek(originalOwner)
@@ -401,7 +401,7 @@ const CurrentWeekCard = ({ owner }) => {
           <TimeGrid times={times} />
         </div>
       ))}
-      <button style={{ ...tx(14, 600, colors.link), background: 'none', border: 'none', padding: '8px 16px', cursor: 'pointer', width: '100%', textAlign: 'center', lineHeight: 1.25 }}>
+      <button onClick={onManage} style={{ ...tx(14, 600, colors.link), background: 'none', border: 'none', padding: '8px 16px', cursor: 'pointer', width: '100%', textAlign: 'center', lineHeight: 1.25 }}>
         Manage current week
       </button>
     </WhiteCard>
@@ -713,7 +713,7 @@ function SuccessBanner({ onDismiss }) {
 }
 
 // ── Main ───────────────────────────────────────────────────────────────────────
-export default function ScheduleScreen({ onBack, owner = {}, onEditTemplate, initialWeeks: initialWeeksProp, onWeeksChange }) {
+export default function ScheduleScreen({ onBack, owner = {}, onEditTemplate, initialWeeks: initialWeeksProp, onWeeksChange, onManageCurrentWeek }) {
   const isDesktop = useIsDesktop()
   const [initialWeeks] = useState(() => initialWeeksProp || getOwnerUpcomingWeeks(owner))
   const [weeks, setWeeks] = useState(() => cloneWeeks(initialWeeks))
@@ -915,7 +915,7 @@ export default function ScheduleScreen({ onBack, owner = {}, onEditTemplate, ini
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <UserInfoCard name={owner.name} image={owner.image} service={owner.service} petNames={owner.petNames} />
       <TemplateCard owner={owner} onEditTemplate={onEditTemplate} />
-      <CurrentWeekCard owner={owner} />
+      <CurrentWeekCard owner={owner} onManage={onManageCurrentWeek} />
     </div>
   )
 

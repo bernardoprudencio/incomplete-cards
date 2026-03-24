@@ -3,8 +3,8 @@ import { colors, typography } from './tokens'
 import { useLoadTime } from './hooks/useLoadTime'
 import { formatActionTimestamp } from './hooks/useDate'
 import { ActionSheet, ReviewSheet } from './components'
-import { HomeScreen, ConversationScreen, ScheduleScreen, EditTemplateScreen } from './screens'
-import { OWNERS, PROTO_TODAY, getOwnerUpcomingWeeks } from './data/owners'
+import { HomeScreen, ConversationScreen, ScheduleScreen, EditTemplateScreen, CurrentWeekScreen } from './screens'
+import { OWNERS, PROTO_TODAY, getOwnerUpcomingWeeks, getOwnerCurrentWeekSlots } from './data/owners'
 import { petImages } from './assets/images'
 
 const DAYS_ORDER = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday']
@@ -34,6 +34,7 @@ export default function App() {
   const [ownerTemplates, setOwnerTemplates]       = useState({})  // { ownerId: [{day, time}] }
   const [ownerWeeks, setOwnerWeeks]               = useState({})  // { ownerId: weeks[] }
   const [ownerSameSchedule, setOwnerSameSchedule] = useState({})  // { ownerId: bool }
+  const [ownerCurrentWeeks, setOwnerCurrentWeeks] = useState({})  // { ownerId: days[] }
 
   const getEffectiveOwner = (owner) => {
     const tpl = ownerTemplates[owner.id]
@@ -99,6 +100,14 @@ export default function App() {
     setConversation(prev => prev ? { ...prev, templateChanges: [...(prev.templateChanges || []), templateChanges] } : prev)
   }
 
+  const handleCurrentWeekSave = (ownerId, diff, updatedDays) => {
+    setOwnerCurrentWeeks(prev => ({ ...prev, [ownerId]: updatedDays }))
+    setConversation(prev => prev ? {
+      ...prev,
+      currentWeekChanges: [...(prev.currentWeekChanges || []), diff],
+    } : prev)
+  }
+
   const openIncompleteSheet = (card) => setSheetItem({
     type: 'incomplete',
     label: card.label,
@@ -130,6 +139,7 @@ export default function App() {
           <HomeScreen
             resolvedCards={resolvedCards}
             loadTime={loadTime}
+            ownerCurrentWeeks={ownerCurrentWeeks}
             onOpenActionSheet={openIncompleteSheet}
             onOpenReviewSheet={(card) => setReviewSheetCard(card)}
             onOpenTodaySheet={openTodaySheet}
@@ -165,6 +175,20 @@ export default function App() {
               navigateTo('conversation', 'back')
             }}
             onEditTemplate={() => navigateTo('edit-template', 'forward')}
+            onManageCurrentWeek={() => navigateTo('current-week', 'forward')}
+          />
+        )}
+        {screen === 'current-week' && (
+          <CurrentWeekScreen
+            owner={getOwner(conversation)}
+            initialDays={
+              ownerCurrentWeeks[getOwner(conversation).id] ??
+              getOwnerCurrentWeekSlots(OWNERS[getOwner(conversation).id])
+            }
+            onSave={(diff, updatedDays) => {
+              handleCurrentWeekSave(getOwner(conversation).id, diff, updatedDays)
+            }}
+            onBack={() => navigateTo('schedule', 'back')}
           />
         )}
         {screen === 'edit-template' && (

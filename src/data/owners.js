@@ -76,19 +76,30 @@ export const OWNERS = {
 
 // ── Derived helpers ────────────────────────────────────────────────────────────
 
-// Today's walks across all owners, sorted by start time
-export const getTodayWalks = () => {
+// Today's walks across all owners, sorted by start time.
+// ownerCurrentWeeks: optional { ownerId: days[] } override from App state.
+export const getTodayWalks = (ownerCurrentWeeks = {}) => {
   const todayName = DAY_NAMES[PROTO_TODAY.getDay()]
   return Object.values(OWNERS)
-    .flatMap(owner =>
-      owner.template
+    .flatMap(owner => {
+      const currentWeekDays = ownerCurrentWeeks[owner.id]
+      if (currentWeekDays) {
+        return currentWeekDays
+          .filter(d => d.day === todayName)
+          .flatMap(d => d.slots.map(s => ({
+            owner,
+            time: s.time,
+            timeRange: formatTimeRange(s.time, owner.serviceDuration),
+          })))
+      }
+      return owner.template
         .filter(t => t.day === todayName)
         .map(t => ({
           owner,
           time: t.time,
           timeRange: formatTimeRange(t.time, owner.serviceDuration),
         }))
-    )
+    })
     .sort((a, b) => toMins(a.time) - toMins(b.time))
 }
 
@@ -103,6 +114,36 @@ export const getOwnerCurrentWeek = (owner) => {
     const date = new Date(monday)
     date.setDate(monday.getDate() + DAY_OFFSET[entry.day])
     return { day: entry.day, date: fmt(date), times: [entry.time] }
+  })
+}
+
+// Slot-based current week for editing (groups multiple times on same day)
+export const getOwnerCurrentWeekSlots = (owner) => {
+  const dow = PROTO_TODAY.getDay()
+  const daysFromMonday = dow === 0 ? 6 : dow - 1
+  const monday = new Date(PROTO_TODAY)
+  monday.setDate(PROTO_TODAY.getDate() - daysFromMonday)
+  monday.setHours(0, 0, 0, 0)
+
+  const grouped = []
+  owner.template.forEach(({ day, time }) => {
+    const existing = grouped.find(g => g.day === day)
+    if (existing) existing.times.push(time)
+    else grouped.push({ day, times: [time] })
+  })
+
+  return grouped.map((group, di) => {
+    const date = new Date(monday)
+    date.setDate(monday.getDate() + DAY_OFFSET[group.day])
+    return {
+      id: `${owner.id}-cw-d${di + 1}`,
+      day: group.day,
+      date: fmt(date),
+      slots: group.times.map((time, si) => ({
+        id: `${owner.id}-cw-d${di + 1}-s${si + 1}`,
+        time,
+      })),
+    }
   })
 }
 

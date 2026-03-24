@@ -55,6 +55,90 @@ Conversation → Home       back button
 | `src/tokens/tokens.js` | All design tokens: colors, spacing, radius, shadows, typography |
 | `src/assets/icons.jsx` | 17 SVG icons as named React components |
 
+## Schedule data model
+
+### Three layers of schedule data
+
+```
+owner.template  →  upcoming weeks  →  current week
+(repeating rule)    (editable slots)   (read-only, this week)
+```
+
+**1. Template** (`owner.template` in `src/data/owners.js`)
+
+The owner's repeating weekly schedule — an array of `{ day, time }` entries:
+
+```js
+template: [
+  { day: 'Monday',    time: '9:00 AM' },
+  { day: 'Wednesday', time: '9:00 AM' },
+  { day: 'Friday',    time: '9:00 AM' },
+]
+```
+
+This is the source of truth that drives everything else. It is editable via **EditTemplateScreen**.
+
+---
+
+**2. Upcoming weeks** (`getOwnerUpcomingWeeks` in `src/data/owners.js`)
+
+Derived from the template. Generates 5 weeks starting next Monday. Template entries for the same day are grouped into a single row with multiple slots:
+
+```js
+// { day: 'Friday', slots: [{ time: '9:00 AM' }, { time: '11:00 AM' }] }
+```
+
+Upcoming weeks are **individually editable** in ScheduleScreen (add/remove days and slots per week). Edits are confirmed with a diff summary and a "Confirm and notify" step. Confirmed edits are persisted in `ownerWeeks` state in `App.jsx` and survive navigation.
+
+---
+
+**3. Current week** (`getOwnerCurrentWeek` in `src/data/owners.js`)
+
+Derives this week's scheduled days from the **static original template** (`OWNERS[owner.id]`). Always read-only — it is never affected by template edits or upcoming-week overrides. Displayed as a non-editable overview card in ScheduleScreen.
+
+---
+
+### How template edits interact with upcoming weeks
+
+When the sitter saves a new template in **EditTemplateScreen**:
+
+1. The new template **fully replaces** upcoming weeks — `applyTemplateToWeeks` regenerates all 5 weeks from scratch using the new template. Any prior per-week overrides are discarded.
+2. `ownerTemplates[ownerId]` is updated so `getEffectiveOwner` returns the new template everywhere.
+3. `ownerWeeks[ownerId]` is updated with the freshly generated weeks.
+4. `ownerSameSchedule[ownerId]` persists whether the "Use same schedule for all days" toggle was on, so the EditTemplateScreen restores the correct state on next visit.
+5. The current week card is **not affected** — it always reads from the static `OWNERS` object.
+6. A template diff message (`templateChanges`) is appended to the conversation: one new chat bubble per save.
+
+---
+
+### State that lives in `App.jsx`
+
+| State | Type | Purpose |
+|---|---|---|
+| `ownerTemplates` | `{ ownerId: [{day, time}] }` | Per-owner template overrides (replaces `owner.template`) |
+| `ownerWeeks` | `{ ownerId: weeks[] }` | Persisted upcoming weeks (from template saves or per-week edits) |
+| `ownerSameSchedule` | `{ ownerId: bool }` | Whether "same schedule" toggle was on at last template save |
+
+`getEffectiveOwner(owner)` merges `ownerTemplates` into the base owner object at render time, so all screens downstream always see the latest template without prop drilling.
+
+---
+
+### Save / confirm flows
+
+**Upcoming week edits (ScheduleScreen)**
+- User edits slots directly in the week list
+- "Save changes" button → ConfirmSheet / ConfirmModal shows a diff (day + date, removed/added times)
+- On "Confirm and notify": edits become the new base, `onWeeksChange` fires immediately (persists to App before back-navigation), and a success banner appears
+- Diff is injected into the conversation as a chat bubble on back-navigation
+
+**Template edits (EditTemplateScreen)**
+- "Save changes" is disabled until the form differs from the last saved template (days, times, or same-schedule toggle)
+- On save: ConfirmSheet / ConfirmModal shows a template diff (day name only, no dates)
+- On "Confirm and notify": template + weeks are regenerated, success banner appears — user stays on screen and navigates back manually
+- Each confirmation appends a new chat bubble to the conversation (does not overwrite previous saves)
+
+---
+
 ## Mock data
 
 - **Incomplete cards:** Archie (James T., Mar 18 dog walk) and Milo/koni-late (Sarah S., Mar 12 delayed check-in)
