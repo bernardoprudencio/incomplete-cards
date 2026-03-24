@@ -3,14 +3,8 @@ import { colors, typography } from './tokens'
 import { useLoadTime } from './hooks/useLoadTime'
 import { formatActionTimestamp } from './hooks/useDate'
 import { ActionSheet, ReviewSheet } from './components'
-import { HomeScreen, ConversationScreen, ScheduleScreen } from './screens'
-import { OWNERS } from './data/owners'
+import { HomeScreen, ConversationScreen } from './screens'
 import { petImages } from './assets/images'
-
-const getOwner = (conv) => {
-  if (!conv || conv.type === 'today') return OWNERS.owen
-  return OWNERS[conv.card?.clientKey] ?? OWNERS.owen
-}
 
 export default function App() {
   const [screen, setScreen]         = useState('home')
@@ -95,18 +89,6 @@ export default function App() {
           <ConversationScreen
             conversation={conversation}
             onBack={() => navigateTo('home', 'back')}
-            onModifySchedule={() => navigateTo('schedule', 'forward')}
-          />
-        )}
-        {screen === 'schedule' && (
-          <ScheduleScreen
-            owner={getOwner(conversation)}
-            onBack={(savedChanges) => {
-              if (savedChanges?.length) {
-                setConversation(prev => ({ ...prev, scheduleChanges: savedChanges }))
-              }
-              navigateTo('conversation', 'back')
-            }}
           />
         )}
       </div>
