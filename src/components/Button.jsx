@@ -14,7 +14,7 @@ const VARIANTS = {
   primary:     { background: colors.link,       borderColor: 'transparent',            color: colors.white,     boxShadow: shadows.medium },
   flat:        { background: 'transparent',     borderColor: 'transparent',            color: colors.link,      boxShadow: 'none' },
   disabled:    { background: colors.disabledBg, borderColor: colors.disabledBorder,    color: colors.disabledText, boxShadow: 'none' },
-  destructive: { background: '#BC4338',         borderColor: 'transparent',            color: colors.white,     boxShadow: shadows.medium },
+  destructive: { background: colors.destructive, borderColor: 'transparent',            color: colors.white,     boxShadow: shadows.medium },
 }
 
 export default function Button({ children, variant = 'default', size = 'small', disabled = false, fullWidth = false, onClick, icon, style = {} }) {

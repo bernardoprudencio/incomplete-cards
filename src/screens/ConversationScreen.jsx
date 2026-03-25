@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { colors, typography, shadows } from '../tokens'
 import { BackIcon, MoreIcon, ImageIcon, SendIcon } from '../assets/icons'
+import { getOwnerRelUnit } from '../data/owners'
 import { peopleImages, petImages } from '../assets/images'
 import { Button, PetAvatar, BannerBlock, ChatBubble } from '../components'
 import RelationshipScreen from './RelationshipScreen'
@@ -13,7 +14,7 @@ const DayDivider = ({ label }) => (
 
 const Gap = ({ h = 12 }) => <div style={{ height: h }} />
 
-export default function ConversationScreen({ onBack, onModifySchedule, conversation, liveEvents = [], onLiveEvent }) {
+export default function ConversationScreen({ onBack, conversation, owner, liveEvents = [], onLiveEvent }) {
   const { type, card } = conversation || {}
   const messagesEndRef = useRef(null)
   const [tab, setTab] = useState('messages')
@@ -38,6 +39,8 @@ export default function ConversationScreen({ onBack, onModifySchedule, conversat
     : card?.id === 'archie'
       ? [{ id: 1, name: 'Archie', emoji: '🐕', img: petImages.archie }]
       : [{ id: 1, name: 'Milo', emoji: '🐕', img: petImages.milo }]
+
+  const relUnits = owner ? [getOwnerRelUnit(owner, conversationPets.map(p => p.id))] : []
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'instant' })
@@ -68,8 +71,7 @@ export default function ConversationScreen({ onBack, onModifySchedule, conversat
         </div>
         <div className="hide-scrollbar" style={{ display: 'flex', gap: 8, paddingTop: 12, overflowX: 'auto', paddingBottom: 14, marginBottom: -14 }}>
           <Button variant="primary" style={{ boxShadow: shadows.medium, flexShrink: 0 }}>Leave feedback</Button>
-          <Button variant="default" style={{ flexShrink: 0 }} onClick={onModifySchedule}>Modify schedule</Button>
-          <Button variant="default" style={{ flexShrink: 0 }}>Details</Button>
+<Button variant="default" style={{ flexShrink: 0 }}>Details</Button>
         </div>
 
         {/* ─── Tab bar ─── */}
@@ -85,7 +87,7 @@ export default function ConversationScreen({ onBack, onModifySchedule, conversat
       </div>
 
       {/* ─── Schedule tab ─── */}
-      {tab === 'schedule' && <RelationshipScreen initialPets={conversationPets} />}
+      {tab === 'schedule' && <RelationshipScreen initialPets={conversationPets} initialUnits={relUnits} />}
 
       {/* ─── Messages ─── */}
       {tab === 'messages' && <div className="hide-scrollbar" style={{ flex: 1, overflowY: 'auto', padding: 16, display: 'flex', flexDirection: 'column' }}>

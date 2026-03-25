@@ -74,6 +74,44 @@ export const OWNERS = {
   },
 }
 
+// ── RelationshipScreen unit helpers ───────────────────────────────────────────
+
+const DAY_TO_DOW = {
+  Sunday:0, Monday:1, Tuesday:2, Wednesday:3, Thursday:4, Friday:5, Saturday:6
+}
+
+const toHHMM = (time) => {
+  const [timePart, period] = time.split(' ')
+  let [h, m] = timePart.split(':').map(Number)
+  if (period === 'PM' && h !== 12) h += 12
+  if (period === 'AM' && h === 12) h = 0
+  return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`
+}
+
+export const getOwnerRelUnit = (owner, petIds = []) => {
+  // Anchor ~4 weeks before PROTO_TODAY (Monday-aligned) so it looks like an established relationship
+  const monday = new Date(PROTO_TODAY)
+  const dow = monday.getDay()
+  monday.setDate(monday.getDate() - (dow === 0 ? 6 : dow - 1) - 28)
+  const startDate = `${monday.getFullYear()}-${String(monday.getMonth()+1).padStart(2,'0')}-${String(monday.getDate()).padStart(2,'0')}`
+
+  return {
+    id: 1,
+    serviceId: 'dog_walking',
+    startDate,
+    endDate: '',
+    repeatEndDate: '',
+    startTime: toHHMM(owner.template[0].time),
+    durationMins: owner.serviceDuration,
+    petIds,
+    frequency: 'weekly',
+    weekDays: owner.template.map(t => DAY_TO_DOW[t.day]),
+    everyNWeeks: 1,
+    skippedKeys: [],
+    overrides: {},
+  }
+}
+
 // ── Derived helpers ────────────────────────────────────────────────────────────
 
 // Today's walks across all owners, sorted by start time

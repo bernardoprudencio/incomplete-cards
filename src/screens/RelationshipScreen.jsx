@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { typography } from '../tokens'
+import { colors, typography } from '../tokens'
 import Button from '../components/Button'
 import Row from '../components/Row'
 import PetAvatar from '../components/PetAvatar'
@@ -10,18 +10,21 @@ import daycareIcon    from '../assets/daycare.svg'
 import dropInIcon     from '../assets/drop-in.svg'
 import walkingIcon    from '../assets/walking.svg'
 
-// ─── Kibble Design Tokens (aligned with prototype palette) ───────────────────
+// ─── Local token aliases (values sourced from central tokens where possible) ──
 const R = {
-  brand:"#00BD70", brandLight:"#E6F9F0",
-  navy:"#1F2124", navyMid:"#404347", gray:"#62686E", grayMid:"#767C82",
-  grayLight:"#9EA5AC", border:"#C9CFD4", separator:"#D7DCE0",
-  bg:"#F4F5F6", bgTertiary:"#E6E8EB", white:"#FFFFFF",
-  blue:"#2E67D1", blueLight:"#EBF1FA",
-  green:"#00BD70", greenLight:"#E6F9F0",
-  red:"#E53935", redLight:"#FDECEA",
-  amber:"#D4860A", amberLight:"#FEF7E6", amberBorder:"#F0D48A",
-  purple:"#2741CC", purpleLight:"#EBEEFB",
-  cardBorder:"#D7DCE0", disabled:"#E6E8EB", disabledText:"#9EA5AC",
+  brand:       colors.brand,              brandLight:  colors.brandLight,
+  navy:        colors.primary,            navyMid:     colors.secondary,
+  gray:        colors.tertiary,           grayMid:     "#767C82",
+  grayLight:   colors.disabledText,       border:      colors.borderInteractive,
+  separator:   colors.border,             bg:          colors.bgSecondary,
+  bgTertiary:  colors.bgTertiary,         white:       colors.white,
+  blue:        colors.link,               blueLight:   colors.blueLight,
+  green:       colors.brand,              greenLight:  colors.brandLight,
+  red:         colors.destructive,        redLight:    "#FDECEA",
+  amber:       "#D4860A",                 amberLight:  "#FEF7E6",
+  amberBorder: "#F0D48A",                 purple:      "#2741CC",
+  purpleLight: "#EBEEFB",                 cardBorder:  colors.border,
+  disabled:    colors.bgTertiary,         disabledText:colors.disabledText,
 }
 
 const fontFamily = typography.fontFamily
@@ -100,7 +103,7 @@ function cloneUnit(u, newServiceId){
 function overlaps(units,u){
   const svc=SERVICES.find(s=>s.id===u.serviceId)
   if(!svc||!u.startDate) return false
-  return units.filter(x=>x.id!==u.id&&(SERVICES.find(s=>s.id===x.serviceId)&&SERVICES.find(s=>s.id===x.serviceId).type)===svc.type).some(x=>{
+  return units.filter(x=>{ if(x.id===u.id) return false; const xSvc=SERVICES.find(s=>s.id===x.serviceId); return xSvc?.type===svc.type }).some(x=>{
     if(!x.startDate) return false
     return u.startDate<=( x.endDate||x.startDate)&&(u.endDate||u.startDate)>=x.startDate
   })
@@ -832,9 +835,7 @@ function AgendaView({agenda, pets, relEndDate, paidThruSunday, onTap}){
   let lastBillingWeek=null
   return(
     <div>
-      <div style={{fontSize:11,color:R.gray,marginBottom:14,display:"flex",alignItems:"center",gap:5,fontFamily}}>
-        <span>💡</span> Tap any event to manage it
-      </div>
+
       {agenda.length===0&&(
         <div style={{textAlign:"center",padding:"48px 20px",color:R.grayLight}}>
           <div style={{fontSize:32,marginBottom:8}}>📅</div>
@@ -857,30 +858,28 @@ function AgendaView({agenda, pets, relEndDate, paidThruSunday, onTap}){
               const showEndMarker=relEndDate&&isLastEntry
               const thisWeekMon=getWeekMonday(d)
               const thisWeekKey=dateKey(thisWeekMon)
-              const isWeekPaid=isPaidOcc(d,paidThruSunday)
               let showBillingDivider=false, showPaidDivider=false
-              if(thisWeekKey!==lastBillingWeek){ if(isWeekPaid) showPaidDivider=true; else showBillingDivider=true; lastBillingWeek=thisWeekKey }
-              const billingDate=addDays(thisWeekMon,-1)
+              if(thisWeekKey!==lastBillingWeek){ const todayMid=new Date(new Date().setHours(0,0,0,0)); if(thisWeekMon<=todayMid) showPaidDivider=true; else showBillingDivider=true; lastBillingWeek=thisWeekKey }
               return(
                 <div key={dayKey} style={{marginBottom:16,opacity:past?0.55:1}}>
+                  {showPaidDivider&&(
+                    <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
+                      <div style={{flex:1,height:1,background:R.greenLight,borderTop:`1px dashed ${R.brand}`}}/>
+                      <div style={{display:"flex",alignItems:"center",gap:5,background:R.greenLight,border:`1px solid ${R.brand}`,borderRadius:99,padding:"4px 12px",whiteSpace:"nowrap"}}>
+                        <span style={{fontSize:11}}>✓</span>
+                        <span style={{fontSize:11,fontWeight:600,color:R.brand,fontFamily}}>Paid on {fmtDate(thisWeekMon)}</span>
+                      </div>
+                      <div style={{flex:1,height:1,background:R.greenLight,borderTop:`1px dashed ${R.brand}`}}/>
+                    </div>
+                  )}
                   {showBillingDivider&&(
                     <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
                       <div style={{flex:1,height:1,background:R.purpleLight,borderTop:`1px dashed #C4B5FD`}}/>
                       <div style={{display:"flex",alignItems:"center",gap:5,background:R.purpleLight,border:`1px solid #C4B5FD`,borderRadius:99,padding:"4px 12px",whiteSpace:"nowrap"}}>
                         <span style={{fontSize:11}}>💳</span>
-                        <span style={{fontSize:11,fontWeight:600,color:R.purple,fontFamily}}>Charged {fmtDate(billingDate)} (Sun)</span>
+                        <span style={{fontSize:11,fontWeight:600,color:R.purple,fontFamily}}>Charged on {fmtDate(thisWeekMon)}</span>
                       </div>
                       <div style={{flex:1,height:1,background:R.purpleLight,borderTop:`1px dashed #C4B5FD`}}/>
-                    </div>
-                  )}
-                  {showPaidDivider&&(
-                    <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
-                      <div style={{flex:1,height:1,background:R.greenLight,borderTop:`1px dashed ${R.brand}`}}/>
-                      <div style={{display:"flex",alignItems:"center",gap:5,background:R.greenLight,border:`1px solid ${R.brand}`,borderRadius:99,padding:"4px 12px",whiteSpace:"nowrap"}}>
-                        <span style={{fontSize:11}}>💳</span>
-                        <span style={{fontSize:11,fontWeight:600,color:R.brand,fontFamily}}>Paid — week of {fmtDate(thisWeekMon)}</span>
-                      </div>
-                      <div style={{flex:1,height:1,background:R.greenLight,borderTop:`1px dashed ${R.brand}`}}/>
                     </div>
                   )}
                   <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
@@ -899,13 +898,14 @@ function AgendaView({agenda, pets, relEndDate, paidThruSunday, onTap}){
                   {occs.map(occ=>{
                     const isSkipped=occ.skipped, overnight=occ.svc.type==="overnight"
                     const endT=!overnight?endTimeFromDuration(occ.unit.startTime,occ.unit.durationMins):null
+                    const occPets=pets.filter(p=>occ.unit.petIds.includes(p.id))
                     return(
                       <div key={`${occ.key}-${occ.nightIndex||0}`} onClick={()=>onTap(occ)} style={{background:isSkipped?R.disabled:R.white,borderRadius:8,marginBottom:8,cursor:"pointer",boxShadow:"0px 1px 4px 0px rgba(27,31,35,0.24)",overflow:"hidden",opacity:isSkipped?0.6:1}}>
                         <div style={{padding:"16px"}}>
                           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:12}}>
                             <div style={{flex:1,minWidth:0}}>
                               <div style={{fontWeight:700,fontSize:16,color:isSkipped?R.disabledText:R.navy,fontFamily,lineHeight:1.5}}>
-                                {occ.svc.label}{pets.filter(p=>occ.unit.petIds.includes(p.id)).length>0&&`: ${pets.filter(p=>occ.unit.petIds.includes(p.id)).map(p=>p.name).join(", ")}`}
+                                {occ.svc.label}{occPets.length>0&&`: ${occPets.map(p=>p.name).join(", ")}`}
                               </div>
                               <div style={{fontSize:14,color:R.gray,fontFamily,lineHeight:1.4}}>
                                 {overnight
@@ -913,7 +913,7 @@ function AgendaView({agenda, pets, relEndDate, paidThruSunday, onTap}){
                                   :`${fmtRelDate(occ.start)} · ${fmtTime(occ.unit.startTime)} to ${fmtTime(endT)}`}
                               </div>
                             </div>
-                            <PetAvatar size={48} images={pets.filter(p=>occ.unit.petIds.includes(p.id)).map(p=>p.img)} />
+                            <PetAvatar size={48} images={occPets.map(p=>p.img)} />
                           </div>
                           {(isSkipped||occ.isOverride||(()=>{const pu=occ.parentUnit||occ.unit;return pu.frequency!=="once"})())&&(
                             <div style={{display:"flex",alignItems:"center",gap:5,flexWrap:"wrap",marginTop:8}}>
@@ -954,14 +954,35 @@ function AgendaView({agenda, pets, relEndDate, paidThruSunday, onTap}){
 }
 
 // ─── RelationshipScreen ───────────────────────────────────────────────────────
-export default function RelationshipScreen({ initialPets }){
+export default function RelationshipScreen({ initialPets, initialUnits }){
   const [pets,       setPets]       = useState(initialPets || PETS_SEED)
-  const [units,      setUnits]      = useState([])
+  const [units,      setUnits]      = useState(initialUnits || [])
   const [relEndDate, setRelEndDate] = useState("")
   const [showAdd,    setShowAdd]    = useState(false)
   const [showManage, setShowManage] = useState(false)
   const [activeOcc,  setActiveOcc]  = useState(null)
-  const [cancelUnit, setCancelUnit] = useState(null)
+  const [cancelUnit,       setCancelUnit]       = useState(null)
+  const [pastWeeksVisible,  setPastWeeksVisible]  = useState(0)
+  const [currentWeekHidden, setCurrentWeekHidden] = useState(false)
+  const [isBelowToday,      setIsBelowToday]      = useState(false)
+  const PAST_PAGE   = 2
+  const WEEK_HEIGHT = 150  // px — approximate height of one week's entries
+  const scrollRef   = useRef(null)
+  const upcomingRef = useRef(null)
+
+  const checkScrollPosition=()=>{
+    if(!scrollRef.current||!upcomingRef.current) return
+    const cRect=scrollRef.current.getBoundingClientRect()
+    const aTop=upcomingRef.current.getBoundingClientRect().top
+    setIsBelowToday(aTop<cRect.top)
+    setCurrentWeekHidden(aTop<cRect.top-WEEK_HEIGHT||aTop>cRect.bottom)
+  }
+
+  useEffect(()=>{
+    checkScrollPosition()
+    window.addEventListener('resize', checkScrollPosition)
+    return ()=>window.removeEventListener('resize', checkScrollPosition)
+  },[pastWeeksVisible, units])
 
   const updateUnit=u=>setUnits(prev=>prev.map(x=>x.id===u.id?u:x))
 
@@ -1015,12 +1036,33 @@ export default function RelationshipScreen({ initialPets }){
   const paidThruSunday=getPaidThruSunday(units)
   const agenda=buildAgenda(units,relEndDate)
   const totalOccs=agenda.reduce((a,[,o])=>a+o.length,0)
+  const allPastEntries=agenda.filter(([dk])=>isPast(parseDate(dk)))
+  const allUpcoming=agenda.filter(([dk])=>!isPast(parseDate(dk)))
+  const pastWeekGroups=[];let _lastWk=null
+  allPastEntries.forEach(entry=>{ const wk=dateKey(getWeekMonday(parseDate(entry[0]))); if(wk!==_lastWk){pastWeekGroups.push([]);_lastWk=wk}; pastWeekGroups[pastWeekGroups.length-1].push(entry) })
+  const totalPastWeeks=pastWeekGroups.length
+  const hiddenPastWeeks=Math.max(0,totalPastWeeks-pastWeeksVisible)
+  const visiblePastEntries=pastWeeksVisible>0?pastWeekGroups.slice(-pastWeeksVisible).flat():[]
 
   return(
-    <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden",background:R.bg}}>
-      <div className="hide-scrollbar" style={{flex:1,overflowY:"auto",padding:"16px 16px 0"}}>
-        <AgendaView agenda={agenda} pets={pets} relEndDate={relEndDate} paidThruSunday={paidThruSunday} onTap={setActiveOcc}/>
+    <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden",background:R.bg,position:"relative"}}>
+      <div ref={scrollRef} onScroll={checkScrollPosition} className="hide-scrollbar" style={{flex:1,overflowY:"auto",padding:"16px 16px 0"}}>
+        {hiddenPastWeeks>0&&(
+          <Button variant="flat" onClick={()=>setPastWeeksVisible(v=>v+PAST_PAGE)} style={{width:"100%",marginBottom:12}}>
+            Show {Math.min(hiddenPastWeeks,PAST_PAGE)} older week{Math.min(hiddenPastWeeks,PAST_PAGE)!==1?"s":""}
+          </Button>
+        )}
+        {visiblePastEntries.length>0&&(
+          <AgendaView agenda={visiblePastEntries} pets={pets} relEndDate={relEndDate} paidThruSunday={paidThruSunday} onTap={setActiveOcc}/>
+        )}
+        <div ref={upcomingRef}/>
+        <AgendaView agenda={allUpcoming} pets={pets} relEndDate={relEndDate} paidThruSunday={paidThruSunday} onTap={setActiveOcc}/>
       </div>
+      {currentWeekHidden&&(
+        <div style={{position:"absolute",bottom:80,left:"50%",transform:"translateX(-50%)",zIndex:10,pointerEvents:"auto"}}>
+          <Button variant="default" size="small" onClick={()=>upcomingRef.current?.scrollIntoView({behavior:"smooth",block:"start"})}>{isBelowToday?"Current week ↑":"Current week ↓"}</Button>
+        </div>
+      )}
 
       <div style={{padding:"12px 16px 20px",background:`linear-gradient(to top,${R.bg} 60%,transparent)`,flexShrink:0}}>
         <div style={{display:"flex",gap:12}}>

@@ -7,6 +7,8 @@ import { HomeScreen, ConversationScreen, ScheduleScreen } from './screens'
 import { OWNERS } from './data/owners'
 import { petImages } from './assets/images'
 
+const TRANSITION_MS = 200
+
 const getOwner = (conv) => {
   if (!conv || conv.type === 'today') return OWNERS.owen
   return OWNERS[conv.card?.clientKey] ?? OWNERS.owen
@@ -29,25 +31,16 @@ export default function App() {
     setTimeout(() => {
       setScreen(target)
       setTransition(false)
-    }, 200)
+    }, TRANSITION_MS)
   }
 
-  const handleComplete = (card) => {
+  const handleResolveCard = (card, resolution) => {
     const ts = formatActionTimestamp()
-    setResolvedCards(prev => ({ ...prev, [card.id]: { resolution: 'completed', timestamp: ts } }))
+    setResolvedCards(prev => ({ ...prev, [card.id]: { resolution, timestamp: ts } }))
     setReviewSheetCard(null)
-    setLiveEvents(prev => [...prev, { id: Date.now(), type: 'resolution', resolution: 'completed', timestamp: ts, card }])
+    setLiveEvents(prev => [...prev, { id: Date.now(), type: 'resolution', resolution, timestamp: ts, card }])
     setConversation({ type: 'incomplete', card })
-    setTimeout(() => navigateTo('conversation', 'forward'), 200)
-  }
-
-  const handleCancelRefund = (card) => {
-    const ts = formatActionTimestamp()
-    setResolvedCards(prev => ({ ...prev, [card.id]: { resolution: 'cancelled', timestamp: ts } }))
-    setReviewSheetCard(null)
-    setLiveEvents(prev => [...prev, { id: Date.now(), type: 'resolution', resolution: 'cancelled', timestamp: ts, card }])
-    setConversation({ type: 'incomplete', card })
-    setTimeout(() => navigateTo('conversation', 'forward'), 200)
+    setTimeout(() => navigateTo('conversation', 'forward'), TRANSITION_MS)
   }
 
   const openIncompleteSheet = (card) => setSheetItem({
@@ -97,10 +90,10 @@ export default function App() {
         {screen === 'conversation' && (
           <ConversationScreen
             conversation={conversation}
+            owner={getOwner(conversation)}
             liveEvents={liveEvents}
             onLiveEvent={(event) => setLiveEvents(prev => [...prev, event])}
             onBack={() => navigateTo('home', 'back')}
-            onModifySchedule={() => navigateTo('schedule', 'forward')}
           />
         )}
         {screen === 'schedule' && (
@@ -132,12 +125,12 @@ export default function App() {
           } else {
             setConversation({ type: 'today' })
           }
-          setTimeout(() => navigateTo('conversation', 'forward'), 200)
+          setTimeout(() => navigateTo('conversation', 'forward'), TRANSITION_MS)
         }}
         onReviewAndComplete={() => {
           const card = sheetItem.card
           setSheetItem(null)
-          setTimeout(() => setReviewSheetCard(card), 200)
+          setTimeout(() => setReviewSheetCard(card), TRANSITION_MS)
         }}
       />
 
@@ -145,8 +138,8 @@ export default function App() {
         visible={!!reviewSheetCard}
         card={reviewSheetCard}
         onClose={() => setReviewSheetCard(null)}
-        onComplete={() => handleComplete(reviewSheetCard)}
-        onCancelRefund={() => handleCancelRefund(reviewSheetCard)}
+        onComplete={() => handleResolveCard(reviewSheetCard, 'completed')}
+        onCancelRefund={() => handleResolveCard(reviewSheetCard, 'cancelled')}
       />
     </div>
   )
