@@ -5,14 +5,14 @@ import PetAvatar from './PetAvatar'
 import Button from './Button'
 import Row from './Row'
 
-export default function ActionSheet({ visible, type, label, sublabel, petImages, firstName, onClose, onGoToConversation, onReviewAndComplete }) {
+export default function ActionSheet({ visible, type, label, sublabel, petImages, firstName, onClose, onGoToConversation, onReviewAndComplete, onReschedule }) {
   if (!visible) return null
 
   const options = [
     type === 'incomplete' && { label: 'Review and complete', onPress: onReviewAndComplete },
     type === 'today'      && { label: 'Open map',            onPress: null },
     { label: `Go to conversation with ${firstName}`,         onPress: onGoToConversation },
-    { label: 'Reschedule',                                   onPress: null },
+    { label: 'Reschedule',                                   onPress: onReschedule ?? null },
   ].filter(Boolean)
 
   return (

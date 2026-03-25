@@ -25,7 +25,7 @@ const DayDivider = ({ label }) => (
 const Gap = ({ h = 12 }) => <div style={{ height: h }} />
 
 export default function ConversationScreen({ onBack, onModifySchedule, conversation }) {
-  const { type, card, resolution, timestamp, scheduleChanges, templateChanges, currentWeekChanges } = conversation || {}
+  const { type, card, owner, resolution, timestamp, scheduleChanges, templateChanges, currentWeekChanges } = conversation || {}
   const messagesEndRef = useRef(null)
   const [text, setText] = useState('')
   const [sentMessages, setSentMessages] = useState([])
@@ -41,8 +41,8 @@ export default function ConversationScreen({ onBack, onModifySchedule, conversat
   }
 
   const isToday = type === 'today'
-  const clientName = isToday ? 'Owen O.' : card?.client
-  const clientImg  = isToday ? peopleImages.owen : peopleImages[card?.clientKey] ?? peopleImages.owen
+  const clientName = isToday ? owner?.name : card?.client
+  const clientImg  = isToday ? owner?.image : peopleImages[card?.clientKey] ?? peopleImages.owen
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'instant' })
@@ -166,7 +166,7 @@ export default function ConversationScreen({ onBack, onModifySchedule, conversat
           />
         )}
 
-        {templateChanges?.length > 0 && !scheduleChanges?.length && !resolution && !currentWeekChanges?.length && <DayDivider label="Today" />}
+        {templateChanges?.length > 0 && !isToday && !scheduleChanges?.length && !resolution && !currentWeekChanges?.length && <DayDivider label="Today" />}
         {templateChanges?.map((changes, i) => (
           <ChatBubble
             key={i}

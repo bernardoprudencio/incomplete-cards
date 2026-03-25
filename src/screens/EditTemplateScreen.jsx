@@ -45,7 +45,7 @@ const TemplateCard = ({ owner }) => {
 
   return (
     <div style={{ background: colors.white, borderRadius: radius.primary, padding: '24px 16px' }}>
-      <p style={{ ...tx(20, 600, colors.primary), lineHeight: 1.25, marginBottom: 16 }}>Weekly schedule template</p>
+      <p style={{ ...tx(20, 600, colors.primary), lineHeight: 1.25, marginBottom: 16 }}>Weekly schedule</p>
       <p style={{ ...tx(14, 400, colors.secondary), lineHeight: 1.25, marginBottom: 8 }}>Repeats on</p>
       {entries.map(([day, times]) => (
         <div key={day} style={{ paddingBottom: 24 }}>
@@ -127,7 +127,7 @@ function TemplateChangeRows({ changes }) {
             {change.day}
           </p>
           {change.removed.map((t, j) => (
-            <p key={`r${j}`} style={{ fontFamily: typography.fontFamily, fontSize: 14, fontWeight: 400, color: '#BC4338', marginBottom: 2, lineHeight: 1.5 }}>
+            <p key={`r${j}`} style={{ fontFamily: typography.fontFamily, fontSize: 14, fontWeight: 400, color: colors.destructive, marginBottom: 2, lineHeight: 1.5 }}>
               Removed: {t}
             </p>
           ))}
@@ -162,7 +162,7 @@ function ConfirmSheet({ changes, ownerName, onConfirm, onClose }) {
         </p>
         <TemplateChangeRows changes={changes} />
         <Button variant="primary" size="default" fullWidth onClick={onConfirm}>
-          Confirm and notify
+          Confirm and send
         </Button>
         <div style={{ paddingTop: 12 }}>
           <Button variant="default" size="default" fullWidth onClick={onClose}>
@@ -222,7 +222,7 @@ function SuccessBanner({ onDismiss }) {
     }}>
       <SuccessIcon />
       <p style={{ ...tx(14, 600, colors.primary), lineHeight: 1.25, flex: 1, margin: 0 }}>
-        Schedule template was updated successfully
+        Success! Schedule was updated.
       </p>
       <button
         onClick={onDismiss}
@@ -358,7 +358,7 @@ function DayRow({ dayLabel, times, onAddTime, onRemoveTime, onRemoveDay, showTra
             onMouseDown={onRemoveDay}
             style={{
               background: 'none', border: 'none', padding: 8, cursor: 'pointer',
-              color: '#BC4338', borderRadius: '50%', display: 'flex', alignItems: 'center',
+              color: colors.destructive, borderRadius: '50%', display: 'flex', alignItems: 'center',
               transition: 'background 0.1s',
             }}
           >
@@ -596,26 +596,29 @@ export default function EditTemplateScreen({ owner, startDate, sublabel, onSave,
         </p>
       </div>
 
-      {/* Actions */}
-      <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: 16, paddingBottom: 24 }}>
-        {errorDays && (
-          <div style={{ position: 'absolute', bottom: '100%', left: 0, right: 0, paddingBottom: 8 }}>
-            <ErrorBanner emptyDays={errorDays} onDismiss={() => setErrorDays(null)} />
-          </div>
-        )}
-        {showSuccess && (
-          <div style={{ position: 'absolute', bottom: '100%', left: 0, right: 0, paddingBottom: 8 }}>
-            <SuccessBanner onDismiss={() => setShowSuccess(false)} />
-          </div>
-        )}
-        <Button variant="primary" fullWidth disabled={!hasChanges} onClick={handleSave}>
+    </div>
+  )
+
+  const footer = (
+    <div style={{ flexShrink: 0, position: 'relative', margin: '8px 16px 24px', padding: 16, background: colors.white, borderRadius: radius.primary }}>
+      {errorDays && (
+        <div style={{ position: 'absolute', bottom: '100%', left: 0, right: 0, paddingBottom: 8 }}>
+          <ErrorBanner emptyDays={errorDays} onDismiss={() => setErrorDays(null)} />
+        </div>
+      )}
+      {showSuccess && (
+        <div style={{ position: 'absolute', bottom: '100%', left: 0, right: 0, paddingBottom: 8 }}>
+          <SuccessBanner onDismiss={() => setShowSuccess(false)} />
+        </div>
+      )}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <Button variant="primary" size="default" fullWidth disabled={!hasChanges} onClick={handleSave}>
           Save changes
         </Button>
-        <Button variant="default" fullWidth onClick={onBack}>
+        <Button variant="default" size="default" fullWidth onClick={onBack}>
           Go back
         </Button>
       </div>
-
     </div>
   )
 
@@ -668,6 +671,7 @@ export default function EditTemplateScreen({ owner, startDate, sublabel, onSave,
             <div className="hide-scrollbar" style={{ flex: 1, overflowY: 'auto' }}>
               {formBody}
             </div>
+            {footer}
           </div>
         </div>
       ) : (
@@ -693,6 +697,7 @@ export default function EditTemplateScreen({ owner, startDate, sublabel, onSave,
               {formBody}
             </div>
           </div>
+          {footer}
         </div>
       )}
 

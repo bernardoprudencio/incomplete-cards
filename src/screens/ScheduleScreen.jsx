@@ -185,7 +185,7 @@ function TimeDropdown({ times, selectedTime, onSelect }) {
               style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 padding: '10px 16px', cursor: 'pointer',
-                background: selected ? '#EBF1FB' : hovering ? colors.bgSecondary : 'transparent',
+                background: selected ? colors.blueLight : hovering ? colors.bgSecondary : 'transparent',
                 transition: 'background 0.08s',
               }}
             >
@@ -243,7 +243,7 @@ function DayCard({ dayData, activeSlotId, onOpenDropdown, onRemoveDay, onRemoveS
         <Button
           variant="flat"
           icon={<TrashIcon />}
-          style={{ color: '#BC4338' }}
+          style={{ color: colors.destructive }}
           onClick={e => { e.stopPropagation(); onRemoveDay() }}
         />
       </div>
@@ -364,7 +364,7 @@ const groupTemplateByDay = (template) => {
 
 const TemplateCard = ({ owner, onEditTemplate }) => (
   <WhiteCard>
-    <p style={{ ...tx(20, 600, colors.primary), lineHeight: 1.25, marginBottom: 16 }}>Weekly schedule template</p>
+    <p style={{ ...tx(20, 600, colors.primary), lineHeight: 1.25, marginBottom: 16 }}>Schedule template</p>
     <p style={{ ...tx(14, 400, colors.secondary), lineHeight: 1.25, marginBottom: 8 }}>Repeats on</p>
     {groupTemplateByDay(owner.template).map(([day, times]) => (
       <div key={day} style={{ paddingBottom: 24 }}>
@@ -376,16 +376,30 @@ const TemplateCard = ({ owner, onEditTemplate }) => (
       onClick={onEditTemplate}
       style={{ ...tx(14, 600, colors.link), background: 'none', border: 'none', padding: '8px 16px', cursor: 'pointer', width: '100%', textAlign: 'center', lineHeight: 1.25 }}
     >
-      Edit weekly schedule template
+      Edit schedule template
     </button>
   </WhiteCard>
 )
 
-const CurrentWeekCard = ({ owner, onManage }) => {
-  // Always use the original static template — current week is never affected by template edits
+const SHORT_MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+
+const parseWeekDate = (dateStr) => {
+  const [mon, day] = dateStr.split(' ')
+  const today = new Date()
+  return new Date(today.getFullYear(), SHORT_MONTHS.indexOf(mon), parseInt(day))
+}
+
+const isMidnightPast = (dateStr) => {
+  const d = parseWeekDate(dateStr)
+  const todayMid = new Date(); todayMid.setHours(0, 0, 0, 0)
+  return d < todayMid
+}
+
+const CurrentWeekCard = ({ owner, onManage, currentWeekDays: savedDays }) => {
   const originalOwner = OWNERS[owner.id] ?? owner
-  const currentWeekDays = getOwnerCurrentWeek(originalOwner)
-  const SHORT_MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+  const currentWeekDays = savedDays
+    ? savedDays.filter(d => d.slots.length > 0).map(d => ({ day: d.day, date: d.date, times: d.slots.map(s => s.time) }))
+    : getOwnerCurrentWeek(originalOwner)
   const dow = PROTO_TODAY.getDay()
   const daysFromMonday = dow === 0 ? 6 : dow - 1
   const monday = new Date(PROTO_TODAY)
@@ -393,14 +407,25 @@ const CurrentWeekCard = ({ owner, onManage }) => {
   const weekLabel = `${SHORT_MONTHS[monday.getMonth()]} ${monday.getDate()}`
   return (
     <WhiteCard>
-      <p style={{ ...tx(20, 600, colors.primary), lineHeight: 1.25, marginBottom: 4 }}>Happening this week</p>
-      <p style={{ ...tx(14, 400, colors.secondary), lineHeight: 1.25, marginBottom: 16 }}>Week of {weekLabel}</p>
-      {currentWeekDays.map(({ day, date, times }) => (
-        <div key={day} style={{ paddingBottom: 24 }}>
-          <p style={{ ...tx(16, 600, colors.primary), lineHeight: 1.5, marginBottom: 8 }}>{day}, {date}</p>
-          <TimeGrid times={times} />
-        </div>
-      ))}
+      <p style={{ ...tx(20, 600, colors.primary), lineHeight: 1.25, marginBottom: 16 }}>Happening this week</p>
+      <p style={{ ...tx(14, 400, colors.secondary), lineHeight: 1.25, marginBottom: 8 }}>Week of {weekLabel}</p>
+      {currentWeekDays.length === 0 ? (
+        <p style={{ ...tx(16, 600, colors.primary), lineHeight: 1.5, marginBottom: 24 }}>No walks this week</p>
+      ) : (
+        currentWeekDays.map(({ day, date, times }) => {
+          const past = isMidnightPast(date)
+          return (
+            <div key={day} style={{ paddingBottom: 24 }}>
+              <p style={{ ...tx(16, 600, colors.primary), lineHeight: 1.5, marginBottom: 8 }}>{day}, {date}</p>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+                {times.map((time, i) => (
+                  <p key={i} style={{ ...tx(14, 400, past ? colors.disabledText : colors.primary), margin: 0, textDecoration: past ? 'line-through' : 'none' }}>{time}</p>
+                ))}
+              </div>
+            </div>
+          )
+        })
+      )}
       <button onClick={onManage} style={{ ...tx(14, 600, colors.link), background: 'none', border: 'none', padding: '8px 16px', cursor: 'pointer', width: '100%', textAlign: 'center', lineHeight: 1.25 }}>
         Manage current week
       </button>
@@ -418,7 +443,7 @@ function ChangeRows({ changes }) {
             {change.day}, {change.date}
           </p>
           {change.removed.map((t, j) => (
-            <p key={`r${j}`} style={{ ...tx(14, 400, '#BC4338'), marginBottom: 2, lineHeight: 1.5 }}>
+            <p key={`r${j}`} style={{ ...tx(14, 400, colors.destructive), marginBottom: 2, lineHeight: 1.5 }}>
               Removed: {t}
             </p>
           ))}
@@ -485,7 +510,7 @@ function CalendarDay({ date, isBooked, onSelect }) {
         width: '100%', height: 44, display: 'flex', flexDirection: 'column',
         alignItems: 'center', justifyContent: 'center', position: 'relative',
         borderRadius: 8, cursor: 'pointer',
-        background: hovered ? '#EBF1FB' : 'transparent',
+        background: hovered ? colors.blueLight : 'transparent',
         transition: 'background 0.1s', userSelect: 'none',
       }}
     >
@@ -713,7 +738,7 @@ function SuccessBanner({ onDismiss }) {
 }
 
 // ── Main ───────────────────────────────────────────────────────────────────────
-export default function ScheduleScreen({ onBack, owner = {}, onEditTemplate, initialWeeks: initialWeeksProp, onWeeksChange, onManageCurrentWeek }) {
+export default function ScheduleScreen({ onBack, owner = {}, onEditTemplate, initialWeeks: initialWeeksProp, onWeeksChange, onManageCurrentWeek, currentWeekDays }) {
   const isDesktop = useIsDesktop()
   const [initialWeeks] = useState(() => initialWeeksProp || getOwnerUpcomingWeeks(owner))
   const [weeks, setWeeks] = useState(() => cloneWeeks(initialWeeks))
@@ -915,7 +940,7 @@ export default function ScheduleScreen({ onBack, owner = {}, onEditTemplate, ini
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <UserInfoCard name={owner.name} image={owner.image} service={owner.service} petNames={owner.petNames} />
       <TemplateCard owner={owner} onEditTemplate={onEditTemplate} />
-      <CurrentWeekCard owner={owner} onManage={onManageCurrentWeek} />
+      <CurrentWeekCard owner={owner} onManage={onManageCurrentWeek} currentWeekDays={currentWeekDays} />
     </div>
   )
 
@@ -928,7 +953,7 @@ export default function ScheduleScreen({ onBack, owner = {}, onEditTemplate, ini
         <Button variant="primary" size="small" onClick={() => setShowAddDay(true)}>Add a day</Button>
       </div>
       <p style={{ ...tx(14, 400, colors.secondary), lineHeight: 1.5, margin: 0 }}>
-        Make changes to accommodate changes in your regular schedule.
+        Adjust your schedule as needed.
       </p>
     </div>
   )
@@ -948,18 +973,17 @@ export default function ScheduleScreen({ onBack, owner = {}, onEditTemplate, ini
 
   // Footer buttons — only when there are unsaved changes and no confirmed save
   const footer = !savedChanges && hasChanges ? (
-    <div style={{
-      flexShrink: 0, background: colors.white,
-      borderTop: `1px solid ${colors.border}`,
-      padding: '16px 16px 24px',
-      display: 'flex', flexDirection: 'column', gap: 16,
-    }}>
-      <Button variant="primary" size="default" fullWidth onClick={handleSaveChanges}>
-        Save changes
-      </Button>
-      <Button variant="default" size="default" fullWidth onClick={handleDismissAll}>
-        Dismiss all changes
-      </Button>
+    <div style={{ flexShrink: 0, padding: '16px 16px 24px' }}>
+      <div style={{
+        display: 'flex', flexDirection: 'column', gap: 16,
+      }}>
+        <Button variant="primary" size="default" fullWidth onClick={handleSaveChanges}>
+          Save changes
+        </Button>
+        <Button variant="default" size="default" fullWidth onClick={handleDismissAll}>
+          Dismiss all changes
+        </Button>
+      </div>
     </div>
   ) : null
 
@@ -1012,9 +1036,9 @@ export default function ScheduleScreen({ onBack, owner = {}, onEditTemplate, ini
           {/* Right column — sticky, independent week scroll, banners floating */}
           <div ref={panelRef} style={{
             flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column',
-            background: colors.white, borderRadius: `${radius.primary}px ${radius.primary}px 0 0`,
+            background: colors.white, borderRadius: radius.primary,
             overflow: 'hidden', position: 'sticky', top: 0,
-            height: 'calc(100vh - 56px)',
+            height: 'calc(100vh - 56px - 24px)',
           }}>
             <div style={{ flexShrink: 0 }}>{upcomingHeader}</div>
             <div className="hide-scrollbar" style={{ flex: 1, overflowY: 'auto' }}>

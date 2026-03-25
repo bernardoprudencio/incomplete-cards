@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { colors, typography, radius, shadows } from '../tokens'
 import { BackIcon, TrashIcon, CautionIcon, CloseSmIcon, SuccessIcon } from '../assets/icons'
 import { Button, PetAvatar, Chip } from '../components'
-import { OWNERS, PROTO_TODAY, getOwnerCurrentWeekSlots } from '../data/owners'
+import { OWNERS, PROTO_TODAY } from '../data/owners'
 
 // ── Responsive hook ────────────────────────────────────────────────────────────
 const useIsDesktop = () => {
@@ -87,26 +87,118 @@ const UserInfoCard = ({ owner }) => (
   </div>
 )
 
+const SHORT_CW = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+
+const isCWDayPast = (dateStr) => {
+  const [mon, day] = dateStr.split(' ')
+  const todayMid = new Date(); todayMid.setHours(0, 0, 0, 0)
+  return new Date(new Date().getFullYear(), SHORT_CW.indexOf(mon), parseInt(day)) < todayMid
+}
+
 const CurrentWeekSnapshotCard = ({ days }) => {
-  const SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
   const dow = PROTO_TODAY.getDay()
   const monday = new Date(PROTO_TODAY)
   monday.setDate(PROTO_TODAY.getDate() - (dow === 0 ? 6 : dow - 1))
-  const label = `${SHORT[monday.getMonth()]} ${monday.getDate()}`
+  const label = `${SHORT_CW[monday.getMonth()]} ${monday.getDate()}`
   return (
     <div style={{ background: colors.white, borderRadius: radius.primary, padding: '24px 16px' }}>
-      <p style={{ ...tx(20, 600, colors.primary), lineHeight: 1.25, marginBottom: 4 }}>Happening this week</p>
-      <p style={{ ...tx(14, 400, colors.secondary), lineHeight: 1.25, marginBottom: 16 }}>Week of {label}</p>
-      {days.map(d => (
-        <div key={d.id} style={{ paddingBottom: 16 }}>
-          <p style={{ ...tx(16, 600, colors.primary), lineHeight: 1.5, marginBottom: 8 }}>{d.day}, {d.date}</p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
-            {d.slots.map(s => (
-              <p key={s.id} style={{ ...tx(14, 400, colors.primary), margin: 0 }}>{s.time}</p>
-            ))}
+      <p style={{ ...tx(20, 600, colors.primary), lineHeight: 1.25, marginBottom: 16 }}>Happening this week</p>
+      <p style={{ ...tx(14, 400, colors.secondary), lineHeight: 1.25, marginBottom: 8 }}>Week of {label}</p>
+      {days.length === 0 ? (
+        <p style={{ ...tx(16, 600, colors.primary), lineHeight: 1.5 }}>No walks this week</p>
+      ) : (
+        days.map(d => {
+          const past = isCWDayPast(d.date)
+          return (
+            <div key={d.id} style={{ paddingBottom: 16 }}>
+              <p style={{ ...tx(16, 600, colors.primary), lineHeight: 1.5, marginBottom: 8 }}>{d.day}, {d.date}</p>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+                {d.slots.map(s => (
+                  <p key={s.id} style={{ ...tx(14, 400, past ? colors.disabledText : colors.primary), margin: 0, textDecoration: past ? 'line-through' : 'none' }}>{s.time}</p>
+                ))}
+              </div>
+            </div>
+          )
+        })
+      )}
+    </div>
+  )
+}
+
+// ── Pricing ledger ─────────────────────────────────────────────────────────────
+const PricingLedger = ({ owner, days, baseDays }) => {
+  const currentWalks = days.reduce((sum, d) => sum + d.slots.length, 0)
+  const prevWalks    = baseDays.reduce((sum, d) => sum + d.slots.length, 0)
+  const { pets, addOns } = owner.pricing
+
+  const calcTotal = (walks) => [...pets, ...addOns].reduce((s, r) => s + r.ratePerWalk * walks, 0)
+  const subtotal  = calcTotal(currentWalks)
+  const prevTotal = calcTotal(prevWalks)
+  const diff      = subtotal - prevTotal
+  const fmt       = (n) => `$${n.toFixed(2)}`
+  const walkLabel = (n) => `${n} ${n === 1 ? 'walk' : 'walks'}`
+
+  const divider = { borderTop: `1px solid ${colors.border}` }
+
+  return (
+    <div style={{ background: colors.bgSecondary, borderRadius: radius.primary, padding: 16, marginBottom: 24 }}>
+      <p style={{ ...tx(20, 600, colors.primary), lineHeight: 1.25, marginBottom: 8 }}>Summary</p>
+
+      {pets.map((pet, i) => (
+        <div key={pet.petName} style={{ padding: '16px 0', ...(i > 0 ? divider : {}) }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 2 }}>
+            <p style={{ ...tx(14, 600, colors.primary), margin: 0 }}>{pet.petName}</p>
+            <p style={{ ...tx(14, 600, colors.primary), margin: 0 }}>{fmt(pet.ratePerWalk * currentWalks)}</p>
           </div>
+          <p style={{ ...tx(14, 400, colors.secondary), margin: 0 }}>{pet.rateType}</p>
+          <p style={{ ...tx(14, 400, colors.secondary), margin: 0 }}>${pet.ratePerWalk} per walk × {walkLabel(currentWalks)}</p>
         </div>
       ))}
+
+      {addOns.map(a => (
+        <div key={a.label} style={{ padding: '16px 0', ...divider }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 2 }}>
+            <p style={{ ...tx(14, 600, colors.primary), margin: 0 }}>{a.label}</p>
+            <p style={{ ...tx(14, 600, colors.primary), margin: 0 }}>{fmt(a.ratePerWalk * currentWalks)}</p>
+          </div>
+          <p style={{ ...tx(14, 400, colors.secondary), margin: 0 }}>${a.ratePerWalk} per walk × {walkLabel(currentWalks)}</p>
+        </div>
+      ))}
+
+      <div style={{ padding: '16px 0', ...divider }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+          <p style={{ ...tx(14, 700, colors.primary), margin: 0 }}>Subtotal</p>
+          <p style={{ ...tx(14, 700, colors.primary), margin: 0 }}>{fmt(subtotal)}</p>
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <p style={{ ...tx(14, 400, colors.secondary), margin: 0 }}>Previous total</p>
+          <p style={{ ...tx(14, 400, colors.secondary), margin: 0 }}>{fmt(prevTotal)}</p>
+        </div>
+      </div>
+
+      <div style={{ padding: '16px 0', ...divider }}>
+        {diff === 0 && <>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+            <p style={{ ...tx(16, 700, colors.primary), margin: 0 }}>Amount due</p>
+            <p style={{ ...tx(16, 700, colors.primary), margin: 0 }}>$0.00</p>
+          </div>
+          <p style={{ ...tx(14, 400, colors.secondary), margin: 0 }}>No change in price.</p>
+        </>}
+        {diff > 0 && <>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+            <p style={{ ...tx(16, 700, colors.primary), margin: 0 }}>Amount due</p>
+            <p style={{ ...tx(16, 700, colors.primary), margin: 0 }}>{fmt(diff)}</p>
+          </div>
+          <p style={{ ...tx(14, 400, colors.secondary), margin: 0 }}>Submitting these changes will charge the owner {fmt(diff)} to their original payment method.</p>
+        </>}
+        {diff < 0 && <>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+            <p style={{ ...tx(16, 700, colors.primary), margin: 0 }}>Refund amount</p>
+            <p style={{ ...tx(16, 700, colors.primary), margin: 0 }}>– {fmt(Math.abs(diff))}</p>
+          </div>
+          <p style={{ ...tx(14, 400, colors.secondary), margin: 0 }}>Submitting these changes will refund the owner {fmt(Math.abs(diff))} to their original payment method. No cancellation fee applied.</p>
+        </>}
+      </div>
     </div>
   )
 }
@@ -157,7 +249,7 @@ function ChangeRows({ changes }) {
         <div key={i} style={{ paddingBottom: i < changes.length - 1 ? 12 : 0 }}>
           <p style={{ ...tx(16, 600, colors.primary), marginBottom: 4, lineHeight: 1.5 }}>{change.day}, {change.date}</p>
           {change.removed.map((t, j) => (
-            <p key={`r${j}`} style={{ ...tx(14, 400, '#BC4338'), marginBottom: 2, lineHeight: 1.5 }}>Removed: {t}</p>
+            <p key={`r${j}`} style={{ ...tx(14, 400, colors.destructive), marginBottom: 2, lineHeight: 1.5 }}>Removed: {t}</p>
           ))}
           {change.added.map((t, j) => (
             <p key={`a${j}`} style={{ ...tx(14, 400, '#1B6C42'), marginBottom: 2, lineHeight: 1.5 }}>Added: {t}</p>
@@ -168,7 +260,7 @@ function ChangeRows({ changes }) {
   )
 }
 
-function ConfirmSheet({ changes, ownerName, onConfirm, onClose }) {
+function ConfirmSheet({ changes, ownerName, paymentNote, onConfirm, onClose }) {
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(27,31,35,0.48)', display: 'flex', alignItems: 'flex-end', zIndex: 10 }} onClick={onClose}>
       <div style={{ background: colors.white, borderRadius: '16px 16px 0 0', boxShadow: shadows.medium, padding: '32px 16px 24px', width: '100%', position: 'relative' }} onClick={e => e.stopPropagation()}>
@@ -178,6 +270,9 @@ function ConfirmSheet({ changes, ownerName, onConfirm, onClose }) {
           Review your changes below. We'll notify {ownerName} of these updates.
         </p>
         <ChangeRows changes={changes} />
+        {paymentNote && (
+          <p style={{ ...tx(14, 400, colors.secondary), lineHeight: 1.5, marginBottom: 16 }}>{paymentNote}</p>
+        )}
         <Button variant="primary" size="default" fullWidth onClick={onConfirm}>Confirm and notify</Button>
         <div style={{ paddingTop: 12 }}>
           <Button variant="default" size="default" fullWidth onClick={onClose}>Close</Button>
@@ -187,7 +282,7 @@ function ConfirmSheet({ changes, ownerName, onConfirm, onClose }) {
   )
 }
 
-function ConfirmModal({ changes, ownerName, onConfirm, onClose }) {
+function ConfirmModal({ changes, ownerName, paymentNote, onConfirm, onClose }) {
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(27,31,35,0.48)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10 }} onClick={onClose}>
       <div onClick={e => e.stopPropagation()} style={{ background: colors.white, borderRadius: 8, boxShadow: '0px 4px 16px 0px rgba(0,0,0,0.12)', padding: 24, width: 400, maxWidth: 'calc(100vw - 48px)' }}>
@@ -196,6 +291,9 @@ function ConfirmModal({ changes, ownerName, onConfirm, onClose }) {
           Review your changes below. We'll notify {ownerName} of these updates.
         </p>
         <ChangeRows changes={changes} />
+        {paymentNote && (
+          <p style={{ ...tx(14, 400, colors.secondary), lineHeight: 1.5, marginBottom: 16 }}>{paymentNote}</p>
+        )}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <Button variant="primary" size="default" fullWidth onClick={onConfirm}>Confirm and notify</Button>
           <Button variant="flat" size="default" fullWidth onClick={onClose}>Close</Button>
@@ -252,7 +350,7 @@ function TimeDropdown({ existingTimes, onSelect, anchorRef }) {
 }
 
 // ── Day row ────────────────────────────────────────────────────────────────────
-function DayRow({ day, onAddTime, onRemoveSlot, onRemoveDay, showTrash }) {
+function DayRow({ day, onAddTime, onRemoveSlot, disabled }) {
   const [openAdd, setOpenAdd] = useState(false)
   const addRef = useRef(null)
 
@@ -268,29 +366,26 @@ function DayRow({ day, onAddTime, onRemoveSlot, onRemoveDay, showTrash }) {
   return (
     <div style={{ background: colors.bgSecondary, borderRadius: radius.primary, padding: 16 }}>
       <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
-        <p style={{ flex: 1, fontFamily: typography.fontFamily, fontWeight: 700, fontSize: 16, color: colors.primary, margin: 0, lineHeight: 1.5 }}>
+        <p style={{ flex: 1, fontFamily: typography.fontFamily, fontWeight: 700, fontSize: 16, color: disabled ? colors.disabledText : colors.primary, margin: 0, lineHeight: 1.5 }}>
           {day.day}, {day.date}
         </p>
-        {showTrash && (
-          <button onMouseDown={onRemoveDay} style={{ background: 'none', border: 'none', padding: 8, cursor: 'pointer', color: '#BC4338', borderRadius: '50%', display: 'flex', alignItems: 'center' }}>
-            <TrashIcon />
-          </button>
-        )}
       </div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
         {day.slots.map(s => (
-          <Chip key={s.id} label={s.time} selected={false} onRemove={() => onRemoveSlot(s.id)} />
+          <Chip key={s.id} label={s.time} selected={false} onRemove={disabled ? undefined : () => onRemoveSlot(s.id)} style={disabled ? { background: colors.bgTertiary, borderColor: colors.disabledBorder } : undefined} />
         ))}
-        <div ref={addRef} style={{ position: 'relative' }}>
-          <Chip label="Add time" selected={openAdd} onClick={() => setOpenAdd(v => !v)} />
-          {openAdd && (
-            <TimeDropdown
-              existingTimes={times}
-              onSelect={(t) => { onAddTime(t); setOpenAdd(false) }}
-              anchorRef={addRef}
-            />
-          )}
-        </div>
+        {!disabled && (
+          <div ref={addRef} style={{ position: 'relative' }}>
+            <Chip label="Add time" selected={openAdd} onClick={() => setOpenAdd(v => !v)} />
+            {openAdd && (
+              <TimeDropdown
+                existingTimes={times}
+                onSelect={(t) => { onAddTime(t); setOpenAdd(false) }}
+                anchorRef={addRef}
+              />
+            )}
+          </div>
+        )}
       </div>
     </div>
   )
@@ -305,13 +400,11 @@ export default function CurrentWeekScreen({ owner, initialDays, onSave, onBack }
   const [errorDays, setErrorDays]    = useState(null)
   const [showSuccess, setShowSuccess] = useState(false)
 
-  const snapshotDays = getOwnerCurrentWeekSlots(OWNERS[owner.id] ?? owner)
+  const snapshotDays = baseDays.filter(d => d.slots.length > 0)
 
   const hasChanges = JSON.stringify(days) !== JSON.stringify(baseDays)
 
   const handleSavePress = () => {
-    const empty = days.filter(d => d.slots.length === 0)
-    if (empty.length) { setErrorDays(empty); return }
     setErrorDays(null)
     setShowConfirm(true)
   }
@@ -340,11 +433,6 @@ export default function CurrentWeekScreen({ owner, initialDays, onSave, onBack }
     ))
   }
 
-  const removeDay = (dayId) => {
-    if (days.length === 1) return
-    setDays(prev => prev.filter(d => d.id !== dayId))
-  }
-
   const formBody = (
     <div style={{ padding: '0 16px' }}>
       <div style={{ padding: '24px 0', display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -354,28 +442,32 @@ export default function CurrentWeekScreen({ owner, initialDays, onSave, onBack }
             day={d}
             onAddTime={(t) => addSlot(d.id, t)}
             onRemoveSlot={(slotId) => removeSlot(d.id, slotId)}
-            onRemoveDay={() => removeDay(d.id)}
-            showTrash={days.length > 1}
+            disabled={isCWDayPast(d.date)}
           />
         ))}
       </div>
 
-      {/* Actions */}
-      <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: 16, paddingBottom: 24 }}>
-        {errorDays && (
-          <div style={{ position: 'absolute', bottom: '100%', left: 0, right: 0, paddingBottom: 8 }}>
-            <ErrorBanner emptyDays={errorDays} onDismiss={() => setErrorDays(null)} />
-          </div>
-        )}
-        {showSuccess && (
-          <div style={{ position: 'absolute', bottom: '100%', left: 0, right: 0, paddingBottom: 8 }}>
-            <SuccessBanner onDismiss={() => setShowSuccess(false)} />
-          </div>
-        )}
-        <Button variant="primary" fullWidth disabled={!hasChanges} onClick={handleSavePress}>
+      <PricingLedger owner={owner} days={days} baseDays={baseDays} />
+    </div>
+  )
+
+  const footer = (
+    <div style={{ flexShrink: 0, position: 'relative', margin: '8px 16px 24px', padding: 16, background: colors.white, borderRadius: radius.primary }}>
+      {errorDays && (
+        <div style={{ position: 'absolute', bottom: '100%', left: 0, right: 0, paddingBottom: 8 }}>
+          <ErrorBanner emptyDays={errorDays} onDismiss={() => setErrorDays(null)} />
+        </div>
+      )}
+      {showSuccess && (
+        <div style={{ position: 'absolute', bottom: '100%', left: 0, right: 0, paddingBottom: 8 }}>
+          <SuccessBanner onDismiss={() => setShowSuccess(false)} />
+        </div>
+      )}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <Button variant="primary" size="default" fullWidth disabled={!hasChanges} onClick={handleSavePress}>
           Save changes
         </Button>
-        <Button variant="default" fullWidth onClick={onBack}>
+        <Button variant="default" size="default" fullWidth onClick={onBack}>
           Go back
         </Button>
       </div>
@@ -431,6 +523,7 @@ export default function CurrentWeekScreen({ owner, initialDays, onSave, onBack }
             <div className="hide-scrollbar" style={{ flex: 1, overflowY: 'auto' }}>
               {formBody}
             </div>
+            {footer}
           </div>
         </div>
       ) : (
@@ -445,26 +538,38 @@ export default function CurrentWeekScreen({ owner, initialDays, onSave, onBack }
               {formBody}
             </div>
           </div>
+          {footer}
         </div>
       )}
 
     </div>
 
-    {showConfirm && (
-      isDesktop
+    {showConfirm && (() => {
+      const { pets, addOns } = owner.pricing
+      const calc = (w) => [...pets, ...addOns].reduce((s, r) => s + r.ratePerWalk * w, 0)
+      const diff = calc(days.reduce((s, d) => s + d.slots.length, 0)) - calc(baseDays.reduce((s, d) => s + d.slots.length, 0))
+      const fmtAmt = (n) => `$${n.toFixed(2)}`
+      const paymentNote = diff === 0
+        ? 'No change in price.'
+        : diff > 0
+          ? `Submitting these changes will charge the owner ${fmtAmt(diff)} to their original payment method.`
+          : `Submitting these changes will refund the owner ${fmtAmt(Math.abs(diff))} to their original payment method. No cancellation fee applied.`
+      return isDesktop
         ? <ConfirmModal
             changes={computeChanges(days, baseDays)}
             ownerName={owner.name}
+            paymentNote={paymentNote}
             onConfirm={handleConfirm}
             onClose={() => setShowConfirm(false)}
           />
         : <ConfirmSheet
             changes={computeChanges(days, baseDays)}
             ownerName={owner.name}
+            paymentNote={paymentNote}
             onConfirm={handleConfirm}
             onClose={() => setShowConfirm(false)}
           />
-    )}
+    })()}
     </>
   )
 }

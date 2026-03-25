@@ -1,6 +1,6 @@
 import { peopleImages, petImages } from '../assets/images'
 
-export const PROTO_TODAY = new Date(2026, 2, 20) // Friday, Mar 20, 2026
+export const PROTO_TODAY = new Date()
 
 const SHORT_MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
 const DAY_NAMES    = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
@@ -42,6 +42,13 @@ export const OWNERS = {
       { day: 'Wednesday', time: '9:00 AM' },
       { day: 'Friday',    time: '9:00 AM' },
     ],
+    pricing: {
+      pets: [
+        { petName: 'Koni',   rateType: 'Standard rate',      ratePerWalk: 20 },
+        { petName: 'Burley', rateType: 'Additional dog rate', ratePerWalk: 10 },
+      ],
+      addOns: [{ label: '60-min add-on', ratePerWalk: 10 }],
+    },
   },
   james: {
     id: 'james',
@@ -56,6 +63,10 @@ export const OWNERS = {
       { day: 'Tuesday',  time: '2:00 PM' },
       { day: 'Thursday', time: '2:00 PM' },
     ],
+    pricing: {
+      pets: [{ petName: 'Archie', rateType: 'Standard rate', ratePerWalk: 20 }],
+      addOns: [],
+    },
   },
   sarah: {
     id: 'sarah',
@@ -71,6 +82,10 @@ export const OWNERS = {
       { day: 'Wednesday', time: '4:00 PM' },
       { day: 'Friday',    time: '4:00 PM' },
     ],
+    pricing: {
+      pets: [{ petName: 'Milo', rateType: 'Standard rate', ratePerWalk: 20 }],
+      addOns: [],
+    },
   },
 }
 
@@ -143,6 +158,33 @@ export const getOwnerCurrentWeekSlots = (owner) => {
         id: `${owner.id}-cw-d${di + 1}-s${si + 1}`,
         time,
       })),
+    }
+  })
+}
+
+// All 7 days of the current week, with template slots pre-populated
+export const getFullCurrentWeekSlots = (owner) => {
+  const dow = PROTO_TODAY.getDay()
+  const daysFromMonday = dow === 0 ? 6 : dow - 1
+  const monday = new Date(PROTO_TODAY)
+  monday.setDate(PROTO_TODAY.getDate() - daysFromMonday)
+  monday.setHours(0, 0, 0, 0)
+
+  const templateByDay = {}
+  owner.template.forEach(({ day, time }) => {
+    if (!templateByDay[day]) templateByDay[day] = []
+    templateByDay[day].push(time)
+  })
+
+  return DAY_NAMES.slice(1).concat('Sunday').map((day, i) => {
+    const date = new Date(monday)
+    date.setDate(monday.getDate() + i)
+    const times = templateByDay[day] || []
+    return {
+      id: `${owner.id}-cw-d${i + 1}`,
+      day,
+      date: fmt(date),
+      slots: times.map((time, si) => ({ id: `${owner.id}-cw-d${i + 1}-s${si + 1}`, time })),
     }
   })
 }

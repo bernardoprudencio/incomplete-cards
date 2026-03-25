@@ -33,7 +33,7 @@ export default function Chip({ label, selected, onClick, onRemove, checkmark, st
         onMouseDown={onClick}
         style={{
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-          background: selected ? '#EBF1FB' : colors.white,
+          background: selected ? colors.blueLight : colors.white,
           border: `2px solid ${selected ? colors.link : colors.borderInteractive}`,
           borderRadius: radius.primary, padding: '8px 12px', minWidth: 88,
           cursor: onClick ? 'pointer' : 'default',

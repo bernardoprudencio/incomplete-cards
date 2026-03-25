@@ -4,7 +4,7 @@ import { useLoadTime } from './hooks/useLoadTime'
 import { formatActionTimestamp } from './hooks/useDate'
 import { ActionSheet, ReviewSheet } from './components'
 import { HomeScreen, ConversationScreen, ScheduleScreen, EditTemplateScreen, CurrentWeekScreen } from './screens'
-import { OWNERS, PROTO_TODAY, getOwnerUpcomingWeeks, getOwnerCurrentWeekSlots } from './data/owners'
+import { OWNERS, PROTO_TODAY, getOwnerUpcomingWeeks, getOwnerCurrentWeekSlots, getFullCurrentWeekSlots } from './data/owners'
 import { petImages } from './assets/images'
 
 const DAYS_ORDER = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday']
@@ -26,8 +26,9 @@ export default function App() {
   const [reviewSheetCard, setReviewSheetCard] = useState(null)
   const [resolvedCards, setResolvedCards] = useState({})
   const [conversation, setConversation]   = useState(null)
-  const [transition, setTransition] = useState(false)
-  const [direction, setDirection]   = useState('forward')
+  const [transition, setTransition]     = useState(false)
+  const [direction, setDirection]       = useState('forward')
+  const [screenHistory, setScreenHistory] = useState([])
   const loadTime = useLoadTime()
 
   // Per-owner template overrides and persisted upcoming weeks
@@ -42,17 +43,33 @@ export default function App() {
   }
 
   const getOwner = (conv) => {
-    const base = (!conv || conv.type === 'today')
+    const base = !conv
       ? OWNERS.owen
-      : (OWNERS[conv.card?.clientKey] ?? OWNERS.owen)
+      : conv.type === 'today'
+        ? (conv.owner ?? OWNERS.owen)
+        : (OWNERS[conv.card?.clientKey] ?? OWNERS.owen)
     return getEffectiveOwner(base)
   }
 
   const navigateTo = (target, dir = 'forward') => {
+    if (dir === 'forward') {
+      setScreenHistory(prev => [...prev, screen])
+    }
     setDirection(dir)
     setTransition(true)
     setTimeout(() => {
       setScreen(target)
+      setTransition(false)
+    }, 200)
+  }
+
+  const goBack = () => {
+    const prev = screenHistory[screenHistory.length - 1] ?? 'home'
+    setScreenHistory(h => h.slice(0, -1))
+    setDirection('back')
+    setTransition(true)
+    setTimeout(() => {
+      setScreen(prev)
       setTransition(false)
     }, 200)
   }
@@ -123,6 +140,7 @@ export default function App() {
     sublabel: `Today · ${walk.timeRange}`,
     petImages: walk.owner.petImages,
     firstName: walk.owner.name.split(' ')[0],
+    owner: walk.owner,
   })
 
   return (
@@ -143,8 +161,8 @@ export default function App() {
             onOpenActionSheet={openIncompleteSheet}
             onOpenReviewSheet={(card) => setReviewSheetCard(card)}
             onOpenTodaySheet={openTodaySheet}
-            onNavigateConversation={() => {
-              setConversation({ type: 'today' })
+            onNavigateConversation={(walk) => {
+              setConversation({ type: 'today', owner: walk.owner })
               navigateTo('conversation', 'forward')
             }}
             onNavigateToCard={(card) => {
@@ -156,7 +174,7 @@ export default function App() {
         {screen === 'conversation' && (
           <ConversationScreen
             conversation={conversation}
-            onBack={() => navigateTo('home', 'back')}
+            onBack={() => goBack()}
             onModifySchedule={() => navigateTo('schedule', 'forward')}
           />
         )}
@@ -172,8 +190,9 @@ export default function App() {
               if (savedChanges?.length) {
                 setConversation(prev => ({ ...prev, scheduleChanges: savedChanges }))
               }
-              navigateTo('conversation', 'back')
+              goBack()
             }}
+            currentWeekDays={ownerCurrentWeeks[getOwner(conversation).id] ?? null}
             onEditTemplate={() => navigateTo('edit-template', 'forward')}
             onManageCurrentWeek={() => navigateTo('current-week', 'forward')}
           />
@@ -183,12 +202,12 @@ export default function App() {
             owner={getOwner(conversation)}
             initialDays={
               ownerCurrentWeeks[getOwner(conversation).id] ??
-              getOwnerCurrentWeekSlots(OWNERS[getOwner(conversation).id])
+              getFullCurrentWeekSlots(OWNERS[getOwner(conversation).id])
             }
             onSave={(diff, updatedDays) => {
               handleCurrentWeekSave(getOwner(conversation).id, diff, updatedDays)
             }}
-            onBack={() => navigateTo('schedule', 'back')}
+            onBack={() => goBack()}
           />
         )}
         {screen === 'edit-template' && (
@@ -200,7 +219,7 @@ export default function App() {
             onSave={(templateData) => {
               handleTemplateSave(getOwner(conversation).id, templateData)
             }}
-            onBack={() => navigateTo('schedule', 'back')}
+            onBack={() => goBack()}
           />
         )}
       </div>
@@ -222,6 +241,12 @@ export default function App() {
             setConversation({ type: 'today' })
           }
           setTimeout(() => navigateTo('conversation', 'forward'), 200)
+        }}
+        onReschedule={() => {
+          const owner = sheetItem.owner
+          setSheetItem(null)
+          setConversation({ type: 'today', owner })
+          setTimeout(() => navigateTo('current-week', 'forward'), 200)
         }}
         onReviewAndComplete={() => {
           const card = sheetItem.card
