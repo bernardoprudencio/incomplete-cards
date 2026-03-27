@@ -1,24 +1,19 @@
 import React from 'react'
 import { colors, shadows } from '../tokens'
 import { ChevronRightIcon } from '../assets/icons'
-import { petImages } from '../assets/images'
 import PetAvatar from './PetAvatar'
 import Button from './Button'
 import Row from './Row'
 
-export default function ActionSheet({ visible, card, onClose, onGoToConversation, onReviewAndComplete }) {
-  if (!visible || !card) return null
+export default function ActionSheet({ visible, type, label, sublabel, petImages, firstName, onClose, onGoToConversation, onReviewAndComplete, onReschedule }) {
+  if (!visible) return null
 
   const options = [
-    { label: 'Review and complete',               actionKey: 'review' },
-    { label: `Go to conversation with ${card.client.split(' ')[0]}`, actionKey: 'conversation' },
-    { label: 'Reschedule walk',                    actionKey: null },
-  ]
-
-  const handleClick = (actionKey) => {
-    if (actionKey === 'conversation') onGoToConversation()
-    else if (actionKey === 'review') onReviewAndComplete()
-  }
+    type === 'incomplete' && { label: 'Review and complete', onPress: onReviewAndComplete },
+    type === 'today'      && { label: 'Open map',            onPress: null },
+    { label: `Go to conversation with ${firstName}`,         onPress: onGoToConversation },
+    { label: 'Reschedule',                                   onPress: onReschedule ?? null },
+  ].filter(Boolean)
 
   return (
     <div style={{
@@ -38,18 +33,18 @@ export default function ActionSheet({ visible, card, onClose, onGoToConversation
         </div>
 
         <Row
-          label={card.label}
-          sublabel={card.sublabel}
-          rightItem={<PetAvatar size={48} images={[petImages[card.petKey]]} />}
+          label={label}
+          sublabel={sublabel}
+          rightItem={<PetAvatar size={48} images={petImages} />}
           firstRow
         />
 
-        {options.map((item) => (
+        {options.map(item => (
           <Row
             key={item.label}
             label={item.label}
             rightItem={<ChevronRightIcon />}
-            onClick={item.actionKey ? () => handleClick(item.actionKey) : undefined}
+            onClick={item.onPress ?? undefined}
           />
         ))}
 

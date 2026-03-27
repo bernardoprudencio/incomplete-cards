@@ -16,7 +16,7 @@ export default function ChatBubble({ message, time, isOwner = false, showCheck =
       }}>
         <p style={{
           fontFamily: typography.fontFamily, fontSize: 14, lineHeight: 1.5,
-          color: colors.primary, margin: '0 0 4px',
+          color: colors.primary, margin: '0 0 4px', whiteSpace: 'pre-line',
         }}>{message}</p>
         <div style={{
           display: 'flex', gap: 4, alignItems: 'center',
