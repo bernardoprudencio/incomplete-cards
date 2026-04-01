@@ -6,6 +6,7 @@ on:
       - main
       - new-modification
       - ongoing-relationships
+      - user-testing-ongoing-relationships-v1
 
 permissions:
   contents: write
@@ -60,4 +61,17 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./dist
           destination_dir: ongoing-relationships
+          keep_files: true
+
+      - name: Build (user-testing-ongoing-relationships-v1)
+        if: github.ref == 'refs/heads/user-testing-ongoing-relationships-v1'
+        run: VITE_BASE=/prototype/user-testing-ongoing-relationships-v1/ npm run build
+
+      - name: Deploy user-testing-ongoing-relationships-v1 → subdirectory
+        if: github.ref == 'refs/heads/user-testing-ongoing-relationships-v1'
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
+          destination_dir: user-testing-ongoing-relationships-v1
           keep_files: true
