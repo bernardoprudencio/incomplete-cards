@@ -26,7 +26,16 @@ export const colors = {
 
   yellow100: '#FCF6EB',
   cyan100:   '#E8F9FC',
-  cyan200:   '#8BE2EF',
+
+  // Semantic extras used across relationship/schedule screens
+  grayMid:      '#767C82',
+  redLight:     '#FDECEA',
+  amber:        '#D4860A',
+  amberLight:   '#FEF7E6',
+  amberBorder:  '#F0D48A',
+  purple:       '#2741CC',
+  purpleLight:  '#EBEEFB',
+  overlayBg:    'rgba(10,18,30,0.5)',
 }
 
 export const radius = {
@@ -43,4 +52,13 @@ export const shadows = {
 export const typography = {
   fontFamily:    "'Averta', sans-serif",
   displayFamily: "'Bogart-Semibold', sans-serif",
+}
+
+export const spacing = {
+  xs:  4,
+  sm:  8,
+  md:  12,
+  lg:  16,
+  xl:  24,
+  xxl: 32,
 }

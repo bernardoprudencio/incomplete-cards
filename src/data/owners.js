@@ -74,6 +74,12 @@ export const OWNERS = {
   },
 }
 
+// ── Default pets for RelationshipScreen ──────────────────────────────────────
+export const PETS_SEED = [
+  { id: 1, name: 'Louie', breed: 'German Shepherd', emoji: '🐕' },
+  { id: 2, name: 'Mochi', breed: 'Scottish Fold',   emoji: '🐈' },
+]
+
 // ── RelationshipScreen unit helpers ───────────────────────────────────────────
 
 const DAY_TO_DOW = {

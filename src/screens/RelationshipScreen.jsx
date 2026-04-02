@@ -4,7 +4,12 @@ import { colors, typography } from '../tokens'
 import Button from '../components/Button'
 import Row from '../components/Row'
 import PetAvatar from '../components/PetAvatar'
-import { CancelIcon, ChevronRightIcon, DropdownIcon, MoreIcon } from '../assets/icons'
+import BottomSheet from '../components/BottomSheet'
+import RadioRow from '../components/RadioRow'
+import DisabledInput from '../components/DisabledInput'
+import CalInput from '../components/CalInput'
+import TimeInput from '../components/TimeInput'
+import { CancelIcon, ChevronRightIcon, MoreIcon } from '../assets/icons'
 import ReviewSheet from '../components/ReviewSheet'
 import boardingIcon   from '../assets/boarding.svg'
 import sittingIcon    from '../assets/sitting.svg'
@@ -43,7 +48,6 @@ const DURATION_SHORT   = [{label:"30 min",mins:30},{label:"45 min",mins:45},{lab
 const DURATION_DAYCARE = [{label:"4 hrs",mins:240},{label:"8 hrs",mins:480},{label:"12 hrs",mins:720}]
 const WEEKDAYS = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"]
 const PETS_SEED = [{id:1,name:"Louie",breed:"German Shepherd",emoji:"🐕"},{id:2,name:"Mochi",breed:"Scottish Fold",emoji:"🐈"}]
-const PET_EMOJIS = ["🐕","🐈","🐇","🐦","🐠","🦎","🐹","🐾"]
 const FREQ = [{id:"once",label:"One-time"},{id:"weekly",label:"Weekly"},{id:"monthly",label:"Monthly"}]
 
 // ─── Service icons ────────────────────────────────────────────────────────────
@@ -60,12 +64,10 @@ const SERVICE_ICONS = {
 // ─── Date helpers ─────────────────────────────────────────────────────────────
 const MONTHS   = ["January","February","March","April","May","June","July","August","September","October","November","December"]
 const MONTHS_S = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
-const DAYS_S   = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"]
 
 function parseDate(s)  { return s?new Date(s+"T00:00:00"):null }
 function dateKey(d)    { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}` }
 function fmtDate(d)    { if(!d)return""; return`${MONTHS_S[d.getMonth()]} ${d.getDate()}` }
-function fmtDateFull(d){ if(!d)return""; return`${MONTHS_S[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}` }
 function fmtDateLong(d){ if(!d)return""; return`${["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][d.getDay()]}, ${MONTHS[d.getMonth()]} ${d.getDate()}` }
 function fmtMonthYear(d){ if(!d)return""; return`${MONTHS[d.getMonth()]} ${d.getFullYear()}` }
 function fmtTime(t)    { if(!t)return""; const[h,m]=t.split(":").map(Number); return`${h%12||12}:${String(m).padStart(2,"0")} ${h>=12?"PM":"AM"}` }
@@ -78,15 +80,6 @@ function isToday(d)    { const t=new Date(); return d.getFullYear()===t.getFullY
 function isYesterday(d){ const y=addDays(new Date(new Date().setHours(0,0,0,0)),-1); return d.getFullYear()===y.getFullYear()&&d.getMonth()===y.getMonth()&&d.getDate()===y.getDate() }
 function fmtRelDate(d) { if(isToday(d))return"Today"; if(isYesterday(d))return"Yesterday"; return fmtDate(d) }
 function isPast(d)     { return d<new Date(new Date().setHours(0,0,0,0)) }
-function ruleLabel(unit){
-  if(unit.frequency==="once") return"Doesn't repeat"
-  const DAY_NAMES_FULL=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"]
-  const dayStr=(unit.weekDays||[]).length>0?" on "+(unit.weekDays.slice().sort((a,b)=>a-b).map(d=>DAY_NAMES_FULL[d]).join(" and ")):""
-  if(unit.frequency==="weekly") return unit.everyNWeeks>1?`Every ${unit.everyNWeeks} weeks${dayStr}`:`Weekly${dayStr}`
-  if(unit.frequency==="monthly") return`Monthly${dayStr}`
-  return""
-}
-function durLabel(svc,mins){ const opts=(svc&&svc.id==="doggy_daycare")?DURATION_DAYCARE:DURATION_SHORT; const f=opts.find(d=>d.mins===mins); return f?f.label:(mins+"min") }
 function shortRuleLabel(unit){
   if(unit.frequency==="once") return"Doesn't repeat"
   const SHORT=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"]
@@ -110,14 +103,6 @@ function defaultUnit(serviceId, overrides={}){
   const svc=SERVICES.find(s=>s.id===serviceId)
   return { id:newId(), serviceId, startDate:"", endDate:"", repeatEndDate:"", startTime:"09:00", durationMins:(svc&&svc.id)==="doggy_daycare"?480:60, petIds:[], frequency:"once", weekDays:[], everyNWeeks:1, skippedKeys:[], overrides:{}, cost:20, ...overrides }
 }
-function cloneUnit(u, newServiceId){
-  const targetId=newServiceId||u.serviceId
-  const svc=SERVICES.find(s=>s.id===targetId)
-  const newDuration=(svc&&svc.id)==="doggy_daycare"?480:(svc&&svc.type)==="overnight"?u.durationMins:(u.durationMins<=240?u.durationMins:60)
-  const freq=((svc&&svc.type)==="overnight"&&nightCount({...u,serviceId:targetId})>=7)?"once":u.frequency
-  return { ...u, id:newId(), serviceId:targetId, startDate:"", endDate:"", repeatEndDate:"", skippedKeys:[], overrides:{}, durationMins:newDuration, frequency:freq }
-}
-
 // ─── Overlap detection ────────────────────────────────────────────────────────
 function overlaps(units,u){
   const svc=SERVICES.find(s=>s.id===u.serviceId)
@@ -182,13 +167,7 @@ function buildAgenda(units,relEndDate){
 }
 
 // ─── Style atoms ─────────────────────────────────────────────────────────────
-const labelSt  ={display:"block",fontSize:14,fontWeight:600,color:R.navyMid,marginBottom:4,fontFamily,lineHeight:1.25}
-const inputSt  ={width:"100%",padding:"10px 12px",border:`1.5px solid ${R.border}`,borderRadius:8,fontSize:14,fontFamily,color:R.navy,background:R.white,boxSizing:"border-box",lineHeight:1.25}
-const btnPrimary={background:R.blue,color:"#fff",border:"none",borderRadius:99999,padding:"12px 24px",fontSize:16,fontWeight:600,cursor:"pointer",fontFamily,width:"100%",boxShadow:"0px 2px 12px rgba(27,31,35,0.24)",transition:"all 0.15s ease",lineHeight:1.5}
-const btnGhost ={background:"#fff",color:R.navyMid,border:`2px solid ${R.border}`,borderRadius:99999,padding:"12px 24px",fontSize:16,fontWeight:600,cursor:"pointer",fontFamily,lineHeight:1.5}
-const btnSmall={background:"#fff",color:R.navyMid,border:`2px solid ${R.border}`,borderRadius:99999,padding:"8px 16px",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily,lineHeight:1.25}
-const btnSmallDestructive={background:"#fff",color:R.red,border:`2px solid ${R.red}`,borderRadius:99999,padding:"8px 16px",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily,lineHeight:1.25}
-const btnDestructive={background:R.red,color:"#fff",border:"none",borderRadius:99999,padding:"12px 24px",fontSize:16,fontWeight:600,cursor:"pointer",fontFamily,boxShadow:"0px 2px 12px rgba(27,31,35,0.24)",lineHeight:1.5}
+const labelSt={display:"block",fontSize:14,fontWeight:600,color:R.navyMid,marginBottom:4,fontFamily,lineHeight:1.25}
 
 // ─── Chip ─────────────────────────────────────────────────────────────────────
 function Chip({label,active,onClick,small,danger}){
@@ -201,108 +180,6 @@ function Chip({label,active,onClick,small,danger}){
     </button>
   )
   return <button onClick={onClick} style={{...base,border:`2px solid ${R.border}`,background:"#fff",color:R.gray}}>{label}</button>
-}
-
-// ─── CalInput ─────────────────────────────────────────────────────────────────
-function CalInput({value, onChange, minDate, placeholder}){
-  const sel=value?parseDate(value):null
-  const today=new Date(); today.setHours(0,0,0,0)
-  const minD=minDate?parseDate(minDate):today
-  const [open,setOpen]=useState(false)
-  const [alignRight,setAlignRight]=useState(false)
-  const [viewYear,setViewYear]=useState(sel?sel.getFullYear():today.getFullYear())
-  const [viewMonth,setViewMonth]=useState(sel?sel.getMonth():today.getMonth())
-  const ref=useRef(null)
-  useEffect(()=>{ if(!open)return; const h=e=>{ if(ref.current&&!ref.current.contains(e.target)) setOpen(false) }; document.addEventListener("mousedown",h); return()=>document.removeEventListener("mousedown",h) },[open])
-  const handleToggle=()=>{ if(!open&&ref.current){ const rect=ref.current.getBoundingClientRect(); setAlignRight(rect.left+276>window.innerWidth) } setOpen(o=>!o) }
-  const firstDay=new Date(viewYear,viewMonth,1); const cells=[]
-  for(let i=0;i<firstDay.getDay();i++) cells.push(null)
-  for(let d=1;d<=new Date(viewYear,viewMonth+1,0).getDate();d++) cells.push(d)
-  const prevM=()=>viewMonth===0?(setViewMonth(11),setViewYear(viewYear-1)):setViewMonth(viewMonth-1)
-  const nextM=()=>viewMonth===11?(setViewMonth(0),setViewYear(viewYear+1)):setViewMonth(viewMonth+1)
-  const pick=day=>{ if(!day)return; const d=new Date(viewYear,viewMonth,day); if(minD&&d<minD)return; onChange(dateKey(d)); setOpen(false) }
-  const label=sel?fmtDateLong(sel):(placeholder||"Select date…")
-  return(
-    <div ref={ref} style={{position:"relative"}}>
-      <button onClick={handleToggle} style={{width:"100%",padding:"12px 8px 12px 12px",border:`2px solid ${open?R.blue:"#C9CFD4"}`,borderRadius:4,fontSize:16,fontFamily,color:sel?R.navy:R.grayLight,background:"#fff",cursor:"pointer",textAlign:"left",display:"flex",alignItems:"center",minHeight:48,boxSizing:"border-box"}}>
-        <span style={{flex:1,fontWeight:400,lineHeight:1.5}}>{label}</span>
-        <DropdownIcon/>
-      </button>
-      {open&&(
-        <div style={{position:"absolute",top:"calc(100% + 6px)",left:alignRight?"auto":0,right:alignRight?0:"auto",zIndex:900,background:"#fff",borderRadius:8,boxShadow:"0 8px 32px rgba(0,0,0,0.15)",border:`1.5px solid ${R.border}`,width:276,padding:"14px 12px"}}>
-          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}>
-            <button onClick={prevM} style={{background:"none",border:"none",cursor:"pointer",fontSize:18,color:R.gray,padding:"2px 6px",borderRadius:6}}>‹</button>
-            <span style={{fontWeight:600,fontSize:13,color:R.navy}}>{`${MONTHS[viewMonth]} ${viewYear}`}</span>
-            <button onClick={nextM} style={{background:"none",border:"none",cursor:"pointer",fontSize:18,color:R.gray,padding:"2px 6px",borderRadius:6}}>›</button>
-          </div>
-          <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",marginBottom:4}}>
-            {WEEKDAYS.map(w=><div key={w} style={{textAlign:"center",fontSize:10,fontWeight:600,color:R.gray,padding:"2px 0"}}>{w}</div>)}
-          </div>
-          <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:2}}>
-            {cells.map((day,i)=>{
-              if(!day) return <div key={"e"+i}/>
-              const d=new Date(viewYear,viewMonth,day)
-              const isSel=sel&&dateKey(d)===dateKey(sel)
-              const dis=d<minD
-              const tod=isToday(d)
-              return(
-                <button key={day} disabled={dis} onClick={()=>pick(day)}
-                  style={{padding:"6px 0",borderRadius:8,border:"none",cursor:dis?"not-allowed":"pointer",fontSize:12,fontWeight:isSel?700:tod?600:400,background:isSel?R.blue:tod&&!isSel?R.blueLight:"transparent",color:dis?R.grayLight:isSel?"#fff":tod?R.blue:R.navy,opacity:dis?0.4:1,fontFamily}}>
-                  {day}
-                </button>
-              )
-            })}
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
-
-// ─── TimeInput ────────────────────────────────────────────────────────────────
-function TimeInput({value, onChange, placeholder}){
-  const [open,setOpen]=useState(false)
-  const ref=useRef(null)
-  useEffect(()=>{ if(!open)return; const h=e=>{ if(ref.current&&!ref.current.contains(e.target)) setOpen(false) }; document.addEventListener("mousedown",h); return()=>document.removeEventListener("mousedown",h) },[open])
-  const HOURS=[6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
-  const MINS=[0,15,30,45]
-  const selH=value?parseInt(value.split(":")[0],10):null
-  const selM=value?parseInt(value.split(":")[1],10):null
-  const pick=(h,m)=>{ onChange(String(h).padStart(2,"0")+":"+String(m).padStart(2,"0")); setOpen(false) }
-  const fH=h=>`${h%12||12} ${h>=12?"PM":"AM"}`
-  return(
-    <div ref={ref} style={{position:"relative"}}>
-      <button onClick={()=>setOpen(!open)} style={{width:"100%",padding:"12px 8px 12px 12px",border:`2px solid ${open?R.blue:"#C9CFD4"}`,borderRadius:4,fontSize:16,fontFamily,color:value?R.navy:R.grayLight,background:"#fff",cursor:"pointer",textAlign:"left",display:"flex",alignItems:"center",minHeight:48,boxSizing:"border-box"}}>
-        <span style={{flex:1,fontWeight:400,lineHeight:1.5}}>{value?fmtTime(value):(placeholder||"Select time…")}</span>
-        <DropdownIcon/>
-      </button>
-      {open&&(
-        <div style={{position:"absolute",top:"calc(100% + 6px)",left:0,zIndex:900,background:"#fff",borderRadius:8,boxShadow:"0 8px 32px rgba(0,0,0,0.15)",border:`1.5px solid ${R.border}`,width:240,padding:"12px"}}>
-          <div style={{fontSize:10,fontWeight:600,color:R.gray,marginBottom:8,textTransform:"uppercase",letterSpacing:0.5}}>Select time</div>
-          <div style={{display:"flex",gap:8}}>
-            <div style={{flex:1,maxHeight:196,overflowY:"auto"}}>
-              <div style={{fontSize:10,color:R.grayLight,marginBottom:4,textAlign:"center",fontWeight:600}}>Hour</div>
-              {HOURS.map(h=>(
-                <button key={h} onClick={()=>pick(h,selM!==null?selM:0)}
-                  style={{width:"100%",padding:"6px",borderRadius:7,border:"none",cursor:"pointer",fontSize:11,fontWeight:selH===h?700:400,background:selH===h?R.blue:"transparent",color:selH===h?"#fff":R.navy,fontFamily,textAlign:"center",marginBottom:1}}>
-                  {fH(h)}
-                </button>
-              ))}
-            </div>
-            <div style={{width:58}}>
-              <div style={{fontSize:10,color:R.grayLight,marginBottom:4,textAlign:"center",fontWeight:600}}>Min</div>
-              {MINS.map(m=>(
-                <button key={m} onClick={()=>pick(selH!==null?selH:9,m)}
-                  style={{width:"100%",padding:"6px",borderRadius:7,border:"none",cursor:"pointer",fontSize:11,fontWeight:selM===m?700:400,background:selM===m?R.blue:"transparent",color:selM===m?"#fff":R.navy,fontFamily,textAlign:"center",marginBottom:1}}>
-                  {String(m).padStart(2,"0")}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  )
 }
 
 // ─── Pet selector ─────────────────────────────────────────────────────────────
@@ -323,65 +200,8 @@ function PetSelector({pets, selectedIds, onChange}){
   )
 }
 
-// ─── Pet panel ────────────────────────────────────────────────────────────────
-function PetPanel({pets, setPets, selectedIds, setSelectedIds, unitList, setUnitList, compact}){
-  const [adding,setAdding]=useState(false)
-  const [newName,setNewName]=useState("")
-  const [newBreed,setNewBreed]=useState("")
-  const [newEmoji,setNewEmoji]=useState("🐕")
-  const addPet=()=>{
-    if(!newName.trim()) return
-    const p={id:Date.now(),name:newName.trim(),breed:newBreed.trim()||"",emoji:newEmoji}
-    setPets(prev=>[...prev,p]); setSelectedIds(prev=>[...prev,p.id])
-    if(setUnitList) setUnitList(prev=>prev.map(u=>({...u,petIds:[...new Set([...u.petIds,p.id])]})))
-    setAdding(false); setNewName(""); setNewBreed(""); setNewEmoji("🐕")
-  }
-  const togglePet=id=>{
-    const on=selectedIds.includes(id); if(on&&selectedIds.length<=1) return
-    const next=on?selectedIds.filter(i=>i!==id):[...selectedIds,id]; setSelectedIds(next)
-    if(on&&setUnitList){ setUnitList(prev=>prev.map(u=>{ if(u.petOverride) return u; const newPets=u.petIds.filter(i=>i!==id); return {...u,petIds:newPets.length?newPets:u.petIds} })) }
-  }
-  return(
-    <div>
-      {!compact&&<label style={labelSt}>Pets in this relationship</label>}
-      <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:adding?12:0}}>
-        {pets.map(p=>{
-          const on=selectedIds.includes(p.id)
-          return(
-            <button key={p.id} onClick={()=>togglePet(p.id)} style={{display:"flex",alignItems:"center",gap:7,padding:"7px 12px",borderRadius:10,border:`1.5px solid ${on?R.blue:R.border}`,background:on?R.blueLight:"#fff",cursor:"pointer",fontFamily,transition:"all 0.12s"}}>
-              <span style={{fontSize:20}}>{p.emoji}</span>
-              <div style={{textAlign:"left"}}>
-                <div style={{fontSize:12,fontWeight:600,color:on?R.blue:R.navy,lineHeight:1.2}}>{p.name}</div>
-                {p.breed&&<div style={{fontSize:10,color:R.gray,lineHeight:1}}>{p.breed}</div>}
-              </div>
-              {on&&<span style={{fontSize:11,color:R.blue}}>✓</span>}
-            </button>
-          )
-        })}
-        <button onClick={()=>setAdding(true)} style={{display:"flex",alignItems:"center",gap:6,padding:"7px 14px",borderRadius:10,border:`1.5px dashed ${R.border}`,background:"#fff",cursor:"pointer",fontFamily,color:R.gray,fontSize:12,fontWeight:600}}>
-          + Add pet
-        </button>
-      </div>
-      {adding&&(
-        <div style={{background:R.bg,borderRadius:10,padding:"12px",border:`1px solid ${R.border}`,marginTop:4}}>
-          <div style={{fontSize:12,fontWeight:600,color:R.navy,marginBottom:10}}>New pet</div>
-          <div style={{display:"flex",gap:6,marginBottom:8,flexWrap:"wrap"}}>
-            {PET_EMOJIS.map(e=><button key={e} onClick={()=>setNewEmoji(e)} style={{fontSize:20,padding:"4px",borderRadius:6,border:`1.5px solid ${newEmoji===e?R.blue:R.border}`,background:newEmoji===e?R.blueLight:"#fff",cursor:"pointer"}}>{e}</button>)}
-          </div>
-          <input value={newName} onChange={e=>setNewName(e.target.value)} placeholder="Name (required)" style={{...inputSt,marginBottom:7,fontSize:13,padding:"8px 10px"}}/>
-          <input value={newBreed} onChange={e=>setNewBreed(e.target.value)} placeholder="Breed (optional)" style={{...inputSt,marginBottom:10,fontSize:13,padding:"8px 10px"}}/>
-          <div style={{display:"flex",gap:7}}>
-            <button onClick={addPet} style={{...btnPrimary,padding:"8px",fontSize:13,borderRadius:8,flex:2}}>Add {newEmoji} {newName||"pet"}</button>
-            <button onClick={()=>setAdding(false)} style={{...btnGhost,padding:"8px",fontSize:13,borderRadius:8,flex:1}}>Cancel</button>
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
-
 // ─── Unit editor ─────────────────────────────────────────────────────────────
-function UnitEditor({unit, onChange, onRemove, onDuplicate, allUnits, allPets, showRemove=true, showChangeType=false, onChangeType, simplified=false, timeOnly=false}){
+function UnitEditor({unit, onChange, allUnits, allPets, simplified=false, timeOnly=false}){
   const svc=SERVICES.find(s=>s.id===unit.serviceId)
   const overnight=(svc&&svc.type)==="overnight"
   const isDaycare=(svc&&svc.id)==="doggy_daycare"
@@ -391,7 +211,6 @@ function UnitEditor({unit, onChange, onRemove, onDuplicate, allUnits, allPets, s
   const canRepeat=overnightCanRepeat(unit)
   const durationOpts=isDaycare?DURATION_DAYCARE:DURATION_SHORT
   const pets=allPets||PETS_SEED
-  const togglePet=id=>{ const ids=unit.petIds.includes(id)?unit.petIds.filter(i=>i!==id):[...unit.petIds,id]; if(ids.length) onChange({...unit,petIds:ids,petOverride:true}) }
   const toggleWeekDay=d=>{ const days=unit.weekDays||[]; onChange({...unit,weekDays:days.includes(d)?days.filter(x=>x!==d):[...days,d]}) }
   if(timeOnly) return(
     <div style={{marginBottom:12}}>
@@ -507,35 +326,6 @@ function UnitEditor({unit, onChange, onRemove, onDuplicate, allUnits, allPets, s
   )
 }
 
-// ─── Change-type picker ───────────────────────────────────────────────────────
-function ChangeTypeSheet({unit, onConfirm, onClose}){
-  const [targetId,setTargetId]=useState(unit.serviceId)
-  return(
-    <div style={{position:"fixed",inset:0,background:"rgba(10,18,30,0.5)",zIndex:400,display:"flex",alignItems:"flex-end",justifyContent:"center"}} onClick={onClose}>
-      <div onClick={e=>e.stopPropagation()} style={{background:R.bg,borderRadius:"20px 20px 0 0",width:"100%",maxWidth:"100%",maxHeight:"80vh",overflowY:"auto",boxShadow:"0 -8px 40px rgba(0,0,0,0.18)"}}>
-        <div style={{background:"#fff",padding:"18px 20px 14px",borderRadius:"20px 20px 0 0",borderBottom:`1px solid ${R.border}`,position:"sticky",top:0}}>
-          <div style={{width:36,height:4,borderRadius:99,background:R.border,margin:"0 auto 14px"}}/>
-          <h3 style={{margin:0,fontSize:17,fontWeight:600,color:R.navy,fontFamily}}>Change service type</h3>
-          <p style={{margin:"4px 0 0",fontSize:12,color:R.gray,fontFamily}}>All other settings will be copied over</p>
-        </div>
-        <div style={{padding:"16px 20px 32px"}}>
-          {SERVICES.map(s=>(
-            <button key={s.id} onClick={()=>setTargetId(s.id)} style={{display:"flex",alignItems:"center",gap:14,padding:"13px 16px",borderRadius:8,border:`1.5px solid ${targetId===s.id?R.blue:R.cardBorder}`,background:targetId===s.id?R.blueLight:"#fff",cursor:"pointer",fontFamily,textAlign:"left",width:"100%",marginBottom:8,transition:"all 0.1s"}}>
-              <span style={{fontSize:22}}>{s.icon}</span>
-              <div style={{flex:1}}>
-                <div style={{fontWeight:600,fontSize:14,color:targetId===s.id?R.blue:R.navy}}>{s.label}</div>
-                <div style={{fontSize:12,color:R.gray,marginTop:1}}>{s.desc}</div>
-              </div>
-              {targetId===s.id&&<span style={{color:R.blue,fontWeight:600}}>✓</span>}
-            </button>
-          ))}
-          <button onClick={()=>onConfirm(targetId)} style={{...btnPrimary,marginTop:4}}>Copy as {SERVICES.find(s=>s.id===targetId)&&SERVICES.find(s=>s.id===targetId).label} →</button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
 // ─── Add-service sheet ────────────────────────────────────────────────────────
 function AddSheet({onAdd, onClose, existing, allPets, defaultServiceId}){
   const initialSvc=defaultServiceId?SERVICES.find(s=>s.id===defaultServiceId):null
@@ -586,30 +376,8 @@ function AddSheet({onAdd, onClose, existing, allPets, defaultServiceId}){
     else { setScopeChoice("this"); setAddView("scopePicker") }
   }
 
-  const simpleSheet=(content)=>(
-    <div style={{position:"fixed",inset:0,background:"rgba(10,18,30,0.5)",zIndex:200,display:"flex",alignItems:"flex-end",justifyContent:"center"}} onClick={onClose}>
-      <div onClick={e=>e.stopPropagation()} style={{background:"#fff",borderRadius:"8px 8px 0 0",width:"100%",maxWidth:"100%",boxShadow:"0 -8px 40px rgba(0,0,0,0.18)",padding:"0 16px 24px"}}>
-        <div style={{display:"flex",justifyContent:"center",paddingTop:8,marginBottom:24}}>
-          <div style={{width:36,height:5,borderRadius:35,background:R.border}}/>
-        </div>
-        {content}
-      </div>
-    </div>
-  )
-
   const sheetHeader=(label,sublabel)=>(
     <Row label={label} sublabel={sublabel} rightItem={<PetAvatar size={48} images={pets.map(p=>p.img)}/>} firstRow/>
-  )
-
-  const radioRow=(label,value)=>(
-    <div onClick={()=>setScopeChoice(value)} style={{display:"flex",alignItems:"center",gap:8,minHeight:56,paddingTop:8,paddingBottom:8,cursor:"pointer"}}>
-      <div style={{flex:1,minWidth:0}}>
-        <p style={{fontFamily,fontWeight:400,fontSize:16,color:R.navy,margin:0,lineHeight:1.5}}>{label}</p>
-      </div>
-      <div style={{width:20,height:20,borderRadius:"50%",border:`2px solid ${scopeChoice===value?"#2E67D1":"#C9CFD4"}`,background:"#fff",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center"}}>
-        {scopeChoice===value&&<div style={{width:10,height:10,borderRadius:"50%",background:"#2E67D1"}}/>}
-      </div>
-    </div>
   )
 
   // ── Pick service ──
@@ -631,41 +399,47 @@ function AddSheet({onAdd, onClose, existing, allPets, defaultServiceId}){
   )
 
   // ── Add form ──
-  if(addView==="form") return simpleSheet(<>
-    {sheetHeader(`Add ${svcName}`, draftDate?fmtDateLong(draftDate):"Today — default")}
-    <div style={{marginBottom:8}}/>
-    <UnitEditor unit={unit} onChange={handleUnitChange} onRemove={()=>{}} allUnits={existing} allPets={pets} showRemove={false} simplified/>
-    {isCurrWeek&&<p style={{fontFamily,fontSize:14,color:R.gray,margin:"-8px 0 16px",lineHeight:1.5}}>${currWeekTotal}.00 will be charged</p>}
-    <Button variant="primary" size="small" fullWidth disabled={!unit?.startDate} onClick={handleSave}>Save changes</Button>
-    <div style={{marginTop:12}}><Button variant="default" size="small" fullWidth onClick={onClose}>Close</Button></div>
-  </>)
+  if(addView==="form") return(
+    <BottomSheet onDismiss={onClose}>
+      {sheetHeader(`Add ${svcName}`, draftDate?fmtDateLong(draftDate):"Today — default")}
+      <div style={{marginBottom:8}}/>
+      <UnitEditor unit={unit} onChange={handleUnitChange} allUnits={existing} allPets={pets} simplified/>
+      {isCurrWeek&&<p style={{fontFamily,fontSize:14,color:R.gray,margin:"-8px 0 16px",lineHeight:1.5}}>${currWeekTotal}.00 will be charged</p>}
+      <Button variant="primary" size="small" fullWidth disabled={!unit?.startDate} onClick={handleSave}>Save changes</Button>
+      <div style={{marginTop:12}}><Button variant="default" size="small" fullWidth onClick={onClose}>Close</Button></div>
+    </BottomSheet>
+  )
 
   // ── Scope picker (future week, single day) ──
-  if(addView==="scopePicker") return simpleSheet(<>
-    {sheetHeader(`Add ${svcName}`, dateTimeLabel)}
-    {radioRow(`This ${svcName} only`,"this")}
-    {radioRow(`This and following ${svcName}s`,"following")}
-    <div style={{marginTop:8}}>
-      <Button variant="primary" size="small" fullWidth onClick={()=>{
-        scopeChoice==="this"?onAdd({...unit,frequency:"once",weekDays:[]}):onAdd({...unit,frequency:"weekly"})
-        onClose()
-      }}>Save changes</Button>
-      <div style={{marginTop:12}}><Button variant="default" size="small" fullWidth onClick={onClose}>Close</Button></div>
-    </div>
-  </>)
+  if(addView==="scopePicker") return(
+    <BottomSheet onDismiss={onClose}>
+      {sheetHeader(`Add ${svcName}`, dateTimeLabel)}
+      <RadioRow label={`This ${svcName} only`} value="this" selected={scopeChoice} onSelect={setScopeChoice}/>
+      <RadioRow label={`This and following ${svcName}s`} value="following" selected={scopeChoice} onSelect={setScopeChoice}/>
+      <div style={{marginTop:8}}>
+        <Button variant="primary" size="small" fullWidth onClick={()=>{
+          scopeChoice==="this"?onAdd({...unit,frequency:"once",weekDays:[]}):onAdd({...unit,frequency:"weekly"})
+          onClose()
+        }}>Save changes</Button>
+        <div style={{marginTop:12}}><Button variant="default" size="small" fullWidth onClick={onClose}>Close</Button></div>
+      </div>
+    </BottomSheet>
+  )
 
   // ── Charge confirmation (current week) ──
-  if(addView==="chargeConfirm") return simpleSheet(<>
-    {sheetHeader("Add and charge", dateTimeLabel)}
-    <p style={{fontFamily,fontSize:14,color:R.gray,lineHeight:1.6,margin:"8px 0 20px"}}>
-      {`Are you sure you want to add the ${svcName} and charge $${currWeekTotal}.00 to their original payment method?`}
-    </p>
-    <Button variant="primary" size="small" fullWidth onClick={()=>{
-      onAdd({...unit,frequency:isMultiDay?"weekly":"once",weekDays:isMultiDay?unit.weekDays:[]})
-      onClose()
-    }}>Confirm and charge</Button>
-    <div style={{marginTop:12}}><Button variant="default" size="small" fullWidth onClick={onClose}>Close</Button></div>
-  </>)
+  if(addView==="chargeConfirm") return(
+    <BottomSheet onDismiss={onClose}>
+      {sheetHeader("Add and charge", dateTimeLabel)}
+      <p style={{fontFamily,fontSize:14,color:R.gray,lineHeight:1.6,margin:"8px 0 20px"}}>
+        {`Are you sure you want to add the ${svcName} and charge $${currWeekTotal}.00 to their original payment method?`}
+      </p>
+      <Button variant="primary" size="small" fullWidth onClick={()=>{
+        onAdd({...unit,frequency:isMultiDay?"weekly":"once",weekDays:isMultiDay?unit.weekDays:[]})
+        onClose()
+      }}>Confirm and charge</Button>
+      <div style={{marginTop:12}}><Button variant="default" size="small" fullWidth onClick={onClose}>Close</Button></div>
+    </BottomSheet>
+  )
 
   return null
 }
@@ -699,28 +473,6 @@ function OccActionSheet({occ, allPets, onSaveUnit, onSkip, onOverride, onOverrid
     />
   )
 
-  const simpleSheet=(content)=>(
-    <div style={{position:"fixed",inset:0,background:"rgba(10,18,30,0.5)",zIndex:300,display:"flex",alignItems:"flex-end",justifyContent:"center"}} onClick={onClose}>
-      <div onClick={e=>e.stopPropagation()} style={{background:"#fff",borderRadius:"8px 8px 0 0",width:"100%",maxWidth:"100%",boxShadow:"0 -8px 40px rgba(0,0,0,0.18)",padding:"0 16px 24px"}}>
-        <div style={{display:"flex",justifyContent:"center",paddingTop:8,marginBottom:24}}>
-          <div style={{width:36,height:5,borderRadius:35,background:R.border}}/>
-        </div>
-        {content}
-      </div>
-    </div>
-  )
-
-  const radioRow=(label,value)=>(
-    <div onClick={()=>setScope(value)} style={{display:"flex",alignItems:"center",gap:8,minHeight:56,paddingTop:8,paddingBottom:8,cursor:"pointer"}}>
-      <div style={{flex:1,minWidth:0}}>
-        <p style={{fontFamily,fontWeight:400,fontSize:16,color:R.navy,margin:0,lineHeight:1.5}}>{label}</p>
-      </div>
-      <div style={{width:20,height:20,borderRadius:"50%",border:`2px solid ${scope===value?"#2E67D1":"#C9CFD4"}`,background:scope===value?"#fff":"#fff",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center"}}>
-        {scope===value&&<div style={{width:10,height:10,borderRadius:"50%",background:"#2E67D1"}}/>}
-      </div>
-    </div>
-  )
-
   const endRuleFromDate=()=>{
     const baseUnit=occ.parentUnit||occ.unit
     if(dateKey(occ.start)===baseUnit.startDate){ onCancel(baseUnit) }
@@ -746,29 +498,33 @@ function OccActionSheet({occ, allPets, onSaveUnit, onSkip, onOverride, onOverrid
       else if(isCurrentWeek){ setScope("this"); setView("cancelRefund") }
       else { onCancel(occ.unit); onClose() }
     }
-    return simpleSheet(<>
-      {headerRow(`Edit ${svcName}`)}
-      <div style={{marginBottom:8}}/>
-      <UnitEditor unit={draft} onChange={setDraft} onRemove={()=>{}} allUnits={[]} allPets={allPets} showRemove={false} timeOnly/>
-      <div onClick={handleRemove} style={{display:"flex",alignItems:"center",gap:10,minHeight:48,paddingTop:4,paddingBottom:12,cursor:"pointer"}}>
-        <CancelIcon color={R.red}/>
-        <p style={{fontFamily,fontWeight:400,fontSize:16,color:R.red,margin:0,lineHeight:1.5}}>Remove {svcName}</p>
-      </div>
-      <Button variant="primary" size="small" fullWidth onClick={handleSave}>Save changes</Button>
-      <div style={{marginTop:12}}><Button variant="default" size="small" fullWidth onClick={onClose}>Close</Button></div>
-    </>)
+    return(
+      <BottomSheet onDismiss={onClose}>
+        {headerRow(`Edit ${svcName}`)}
+        <div style={{marginBottom:8}}/>
+        <UnitEditor unit={draft} onChange={setDraft} allUnits={[]} allPets={allPets} timeOnly/>
+        <div onClick={handleRemove} style={{display:"flex",alignItems:"center",gap:10,minHeight:48,paddingTop:4,paddingBottom:12,cursor:"pointer"}}>
+          <CancelIcon color={R.red}/>
+          <p style={{fontFamily,fontWeight:400,fontSize:16,color:R.red,margin:0,lineHeight:1.5}}>Remove {svcName}</p>
+        </div>
+        <Button variant="primary" size="small" fullWidth onClick={handleSave}>Save changes</Button>
+        <div style={{marginTop:12}}><Button variant="default" size="small" fullWidth onClick={onClose}>Close</Button></div>
+      </BottomSheet>
+    )
   }
 
   // ── Edit scope picker ──
-  if(view==="editScope") return simpleSheet(<>
-    {headerRow(`Edit ${svcName}`)}
-    {radioRow("This one","this")}
-    {radioRow("All future ones","following")}
-    <div style={{marginTop:8}}>
-      <Button variant="primary" size="small" fullWidth onClick={()=>{scope==="this"?onOverride(occ,draft):onOverrideFromDate(occ,draft);onClose()}}>Save changes</Button>
-      <div style={{marginTop:12}}><Button variant="default" size="small" fullWidth onClick={onClose}>Close</Button></div>
-    </div>
-  </>)
+  if(view==="editScope") return(
+    <BottomSheet onDismiss={onClose}>
+      {headerRow(`Edit ${svcName}`)}
+      <RadioRow label="This one" value="this" selected={scope} onSelect={setScope}/>
+      <RadioRow label="All future ones" value="following" selected={scope} onSelect={setScope}/>
+      <div style={{marginTop:8}}>
+        <Button variant="primary" size="small" fullWidth onClick={()=>{scope==="this"?onOverride(occ,draft):onOverrideFromDate(occ,draft);onClose()}}>Save changes</Button>
+        <div style={{marginTop:12}}><Button variant="default" size="small" fullWidth onClick={onClose}>Close</Button></div>
+      </div>
+    </BottomSheet>
+  )
 
   // ── Remove scope picker ──
   if(view==="removeScope"){
@@ -782,15 +538,17 @@ function OccActionSheet({occ, allPets, onSaveUnit, onSkip, onOverride, onOverrid
         else { applyRemoveFollowing(); onClose() }
       }
     }
-    return simpleSheet(<>
-      {headerRow(`Remove ${svcName}`)}
-      {radioRow(`This ${svcName} only`,"this")}
-      {radioRow(followingLabel,"following")}
-      <div style={{marginTop:8}}>
-        <Button variant="primary" size="small" fullWidth onClick={handleConfirm}>Save changes</Button>
-        <div style={{marginTop:12}}><Button variant="default" size="small" fullWidth onClick={onClose}>Close</Button></div>
-      </div>
-    </>)
+    return(
+      <BottomSheet onDismiss={onClose}>
+        {headerRow(`Remove ${svcName}`)}
+        <RadioRow label={`This ${svcName} only`} value="this" selected={scope} onSelect={setScope}/>
+        <RadioRow label={followingLabel} value="following" selected={scope} onSelect={setScope}/>
+        <div style={{marginTop:8}}>
+          <Button variant="primary" size="small" fullWidth onClick={handleConfirm}>Save changes</Button>
+          <div style={{marginTop:12}}><Button variant="default" size="small" fullWidth onClick={onClose}>Close</Button></div>
+        </div>
+      </BottomSheet>
+    )
   }
 
   // ── Cancel and refund confirmation ──
@@ -802,14 +560,16 @@ function OccActionSheet({occ, allPets, onSaveUnit, onSkip, onOverride, onOverrid
       } else { applyRemoveFollowing() }
       onClose()
     }
-    return simpleSheet(<>
-      {headerRow("Cancel and refund")}
-      <p style={{fontFamily,fontSize:14,color:R.gray,lineHeight:1.6,margin:"8px 0 20px"}}>
-        {`Are you sure you want to cancel and refund the ${svcName} of ${fmtDate(occ.start)}? A refund of $${occ.unit.cost||0}.00 will automatically be processed.`}
-      </p>
-      <Button variant="destructive" size="small" fullWidth onClick={handleConfirmRefund}>Cancel and refund</Button>
-      <div style={{marginTop:12}}><Button variant="default" size="small" fullWidth onClick={onClose}>Close</Button></div>
-    </>)
+    return(
+      <BottomSheet onDismiss={onClose}>
+        {headerRow("Cancel and refund")}
+        <p style={{fontFamily,fontSize:14,color:R.gray,lineHeight:1.6,margin:"8px 0 20px"}}>
+          {`Are you sure you want to cancel and refund the ${svcName} of ${fmtDate(occ.start)}? A refund of $${occ.unit.cost||0}.00 will automatically be processed.`}
+        </p>
+        <Button variant="destructive" size="small" fullWidth onClick={handleConfirmRefund}>Cancel and refund</Button>
+        <div style={{marginTop:12}}><Button variant="default" size="small" fullWidth onClick={onClose}>Close</Button></div>
+      </BottomSheet>
+    )
   }
 
   return null
@@ -826,55 +586,67 @@ function DeleteConfirmDialog({unit, units, onDelete, onDeleteKeepPaid, onRefundA
   const unpaidUpcoming=occs.filter(o=>!o.skipped&&o.start>=today&&!isPaidOcc(o.start,paidThru))
   const hasPaid=paidOccs.length>0
 
+  const header=(
+    <h3 style={{margin:0,fontSize:18,fontWeight:600,color:R.navy,fontFamily}}>Cancel service</h3>
+  )
   return(
-    <div style={{position:"fixed",inset:0,background:"rgba(10,18,30,0.5)",zIndex:500,display:"flex",alignItems:"flex-end",justifyContent:"center"}} onClick={onClose}>
-      <div onClick={e=>e.stopPropagation()} style={{background:R.white,borderRadius:"20px 20px 0 0",width:"100%",maxWidth:"100%",maxHeight:"92vh",overflowY:"auto",boxShadow:"0 -8px 40px rgba(0,0,0,0.18)"}}>
-        <div style={{background:R.white,padding:"18px 16px 8px",borderRadius:"20px 20px 0 0",position:"sticky",top:0,zIndex:1}}>
-          <div style={{width:36,height:4,borderRadius:99,background:R.border,margin:"0 auto 24px"}}/>
-          <h3 style={{margin:0,fontSize:18,fontWeight:600,color:R.navy,fontFamily}}>Cancel service</h3>
-        </div>
-        <div style={{padding:"8px 16px 36px",display:"flex",flexDirection:"column",gap:12}}>
-          <p style={{margin:0,fontSize:14,color:R.gray,fontFamily,lineHeight:1.5}}>
-            {isOnce
-              ?<>This will remove <strong style={{color:R.navy}}>{svc&&svc.label}</strong> on {unit.startDate?fmtDate(parseDate(unit.startDate)):"(no date)"}. {hasPaid&&"A refund will be issued per Rover's cancellation policy."}</>
-              :<>This will remove the <strong style={{color:R.navy}}>{svc&&svc.label}</strong> rule and cancel all upcoming sessions. {hasPaid&&"Paid sessions will be refunded per Rover's cancellation policy."}</>
-            }
-          </p>
-          {!isOnce&&(hasPaid||unpaidUpcoming.length>0)&&(
-            <div style={{display:"flex",flexDirection:"column",gap:8}}>
-              {hasPaid&&(
-                <div style={{background:R.greenLight,border:`1.5px solid ${R.green}44`,borderRadius:8,padding:"10px 14px"}}>
-                  <div style={{fontSize:13,color:R.navy,lineHeight:1.5,fontFamily}}><strong>{paidOccs.length} paid session{paidOccs.length!==1?"s":""}</strong> — will be refunded</div>
-                </div>
-              )}
-              {unpaidUpcoming.length>0&&(
-                <div style={{background:R.redLight,border:`1.5px solid ${R.red}44`,borderRadius:8,padding:"10px 14px"}}>
-                  <div style={{fontSize:13,color:R.navy,lineHeight:1.5,fontFamily}}><strong>{unpaidUpcoming.length} upcoming session{unpaidUpcoming.length!==1?"s":""}</strong> — will be cancelled</div>
-                </div>
-              )}
-            </div>
-          )}
-          <Button variant="destructive" size="small" fullWidth onClick={()=>{hasPaid?onRefundAndDelete(unit.id):onDelete(unit.id);onClose()}}>
-            {hasPaid?"Cancel and refund":"Cancel service"}
-          </Button>
-          {!isOnce&&hasPaid&&(
-            <Button variant="default" size="small" fullWidth onClick={()=>{onDeleteKeepPaid(unit.id);onClose()}}>Cancel upcoming, keep paid</Button>
-          )}
-          <Button variant="default" size="small" fullWidth onClick={onClose}>Go back</Button>
-        </div>
+    <BottomSheet variant="full" onDismiss={onClose} zIndex={500} header={header}>
+      <div style={{display:"flex",flexDirection:"column",gap:12}}>
+        <p style={{margin:0,fontSize:14,color:R.gray,fontFamily,lineHeight:1.5}}>
+          {isOnce
+            ?<>This will remove <strong style={{color:R.navy}}>{svc&&svc.label}</strong> on {unit.startDate?fmtDate(parseDate(unit.startDate)):"(no date)"}. {hasPaid&&"A refund will be issued per Rover's cancellation policy."}</>
+            :<>This will remove the <strong style={{color:R.navy}}>{svc&&svc.label}</strong> rule and cancel all upcoming sessions. {hasPaid&&"Paid sessions will be refunded per Rover's cancellation policy."}</>
+          }
+        </p>
+        {!isOnce&&(hasPaid||unpaidUpcoming.length>0)&&(
+          <div style={{display:"flex",flexDirection:"column",gap:8}}>
+            {hasPaid&&(
+              <div style={{background:R.greenLight,border:`1.5px solid ${R.green}44`,borderRadius:8,padding:"10px 14px"}}>
+                <div style={{fontSize:13,color:R.navy,lineHeight:1.5,fontFamily}}><strong>{paidOccs.length} paid session{paidOccs.length!==1?"s":""}</strong> — will be refunded</div>
+              </div>
+            )}
+            {unpaidUpcoming.length>0&&(
+              <div style={{background:R.redLight,border:`1.5px solid ${R.red}44`,borderRadius:8,padding:"10px 14px"}}>
+                <div style={{fontSize:13,color:R.navy,lineHeight:1.5,fontFamily}}><strong>{unpaidUpcoming.length} upcoming session{unpaidUpcoming.length!==1?"s":""}</strong> — will be cancelled</div>
+              </div>
+            )}
+          </div>
+        )}
+        <Button variant="destructive" size="small" fullWidth onClick={()=>{hasPaid?onRefundAndDelete(unit.id):onDelete(unit.id);onClose()}}>
+          {hasPaid?"Cancel and refund":"Cancel service"}
+        </Button>
+        {!isOnce&&hasPaid&&(
+          <Button variant="default" size="small" fullWidth onClick={()=>{onDeleteKeepPaid(unit.id);onClose()}}>Cancel upcoming, keep paid</Button>
+        )}
+        <Button variant="default" size="small" fullWidth onClick={onClose}>Go back</Button>
       </div>
-    </div>
+    </BottomSheet>
   )
 }
 
 // ─── Manage sheet ─────────────────────────────────────────────────────────────
-function ManageSheet({units, pets, relEndDate, onUnitsChange, onRelEndDateChange, onPetsChange, onUnitListChange, onClose}){
+function ManageSheet({units, pets, onUnitsChange, onClose}){
   const [view,setView]=useState("list") // "list" | "edit" | "cancel"
   const [editingUnit,setEditingUnit]=useState(null)
   const recurring=units.filter(u=>u.frequency!=="once")
   const removeUnit=id=>onUnitsChange(units.filter(x=>x.id!==id))
   const refundAndDelete=id=>onUnitsChange(units.filter(x=>x.id!==id))
-  const updateUnit=u=>{ onUnitsChange(units.map(x=>x.id===u.id?u:x)); setView("list"); setEditingUnit(null) }
+  const updateUnit=updated=>{
+    const orig=units.find(x=>x.id===updated.id)
+    const todayMid=new Date(PROTO_TODAY); todayMid.setHours(0,0,0,0)
+    const startedInPast=orig&&orig.startDate&&parseDate(orig.startDate)<todayMid
+    if(startedInPast){
+      const todayKey=dateKey(todayMid)
+      const yesterdayKey=dateKey(addDays(todayMid,-1))
+      onUnitsChange([
+        ...units.map(x=>x.id!==updated.id?x:{...x,repeatEndDate:yesterdayKey}),
+        {...updated,id:newId(),startDate:todayKey},
+      ])
+    } else {
+      onUnitsChange(units.map(x=>x.id===updated.id?updated:x))
+    }
+    setView("list"); setEditingUnit(null)
+  }
 
   const svc=SERVICES.find(s=>s.id===units[0]?.serviceId)
   const petNames=pets.map(p=>p.name)
@@ -901,6 +673,7 @@ function ManageSheet({units, pets, relEndDate, onUnitsChange, onRelEndDateChange
   const cancelSvcName=cancelSvc?cancelSvc.label:"service"
   const paidThru=u?getPaidThruSunday(units):null
   const todayMid=new Date(PROTO_TODAY); todayMid.setHours(0,0,0,0)
+  const startInPast=u&&u.startDate&&parseDate(u.startDate)<todayMid
   const paidOccs=u?expandUnit(u).filter(o=>!o.skipped&&isPaidOcc(o.start,paidThru)&&o.start>=todayMid):[]
   const hasPaid=paidOccs.length>0
   const refundTotal=paidOccs.reduce((sum,o)=>sum+(o.unit.cost||0),0)
@@ -958,7 +731,10 @@ function ManageSheet({units, pets, relEndDate, onUnitsChange, onRelEndDateChange
       <>
         <div style={{marginBottom:24}}>
           <label style={labelSt}>Start date</label>
-          <CalInput value={u.startDate} onChange={v=>setEditingUnit({...u,startDate:v})} placeholder="Select date"/>
+          {startInPast
+            ?<DisabledInput value={fmtDateLong(parseDate(u.startDate))}/>
+            :<CalInput value={u.startDate} onChange={v=>setEditingUnit({...u,startDate:v})} placeholder="Select date"/>
+          }
         </div>
         <div style={{marginBottom:24}}>
           <label style={labelSt}>Start time</label>
@@ -979,10 +755,7 @@ function ManageSheet({units, pets, relEndDate, onUnitsChange, onRelEndDateChange
         )}
         <div style={{marginBottom:8}}>
           <label style={labelSt}>End date</label>
-          <div style={{display:"flex",alignItems:"center",minHeight:48,padding:"12px 8px 12px 12px",border:`2px solid #C9CFD4`,borderRadius:4,background:R.bg,boxSizing:"border-box",gap:8}}>
-            <span style={{flex:1,fontFamily,fontSize:16,color:R.grayLight,lineHeight:1.5}}>{u.repeatEndDate?fmtDate(parseDate(u.repeatEndDate)):"No end date"}</span>
-            <DropdownIcon/>
-          </div>
+          <DisabledInput value={u.repeatEndDate?fmtDate(parseDate(u.repeatEndDate)):"No end date"}/>
         </div>
         <div onClick={()=>setView("cancel")} style={{display:"flex",alignItems:"center",gap:10,minHeight:56,paddingTop:8,paddingBottom:8,cursor:"pointer"}}>
           <CancelIcon color={R.red}/>
@@ -1011,24 +784,14 @@ function ManageSheet({units, pets, relEndDate, onUnitsChange, onRelEndDateChange
   )
 
   return(
-    <div style={{position:"fixed",inset:0,background:"rgba(10,18,30,0.5)",zIndex:200,display:"flex",alignItems:"flex-end",justifyContent:"center"}} onClick={handleDismiss}>
-      <div onClick={e=>e.stopPropagation()} style={{background:"#fff",borderRadius:"16px 16px 0 0",width:"100%",maxWidth:"100%",maxHeight:"92vh",display:"flex",flexDirection:"column",boxShadow:"0px 2px 12px rgba(27,31,35,0.24)"}}>
-        <div style={{flexShrink:0,background:"#fff",borderRadius:"16px 16px 0 0",padding:"8px 16px 0"}}>
-          <div style={{display:"flex",justifyContent:"center",paddingBottom:16}}>
-            <div style={{width:36,height:5,borderRadius:35,background:R.border}}/>
-          </div>
-          {header}
-        </div>
-        <div style={{overflowY:"auto",padding:"0 16px 24px"}}>
-          {body}
-        </div>
-      </div>
-    </div>
+    <BottomSheet variant="full" onDismiss={handleDismiss} header={header}>
+      {body}
+    </BottomSheet>
   )
 }
 
 // ─── Agenda view ──────────────────────────────────────────────────────────────
-function AgendaView({agenda, upcomingRef, currentWeekRef, firstUpcomingKey, pets, relEndDate, paidThruSunday, incompleteKey, onTap, onReview}){
+function AgendaView({agenda, upcomingRef, currentWeekRef, firstUpcomingKey, relEndDate, incompleteKey, onTap, onReview}){
   if(agenda.length===0) return(
     <div style={{textAlign:"center",padding:"48px 20px",color:R.grayLight}}>
       <div style={{fontSize:32,marginBottom:8}}>📅</div>
@@ -1316,7 +1079,6 @@ export default function RelationshipScreen({ initialPets, initialUnits }){
     })
   }
 
-  const paidThruSunday=getPaidThruSunday(units)
   const agenda=buildAgenda(units,relEndDate)
   const incompleteKey=useMemo(()=>{
     const thisMonday=getWeekMonday(PROTO_TODAY)
@@ -1325,8 +1087,7 @@ export default function RelationshipScreen({ initialPets, initialUnits }){
     if(!lastWeekOccs.length) return null
     return lastWeekOccs.reduce((max,occ)=>occ.start>max.start?occ:max).key
   },[agenda])
-  const totalOccs=agenda.reduce((a,[,o])=>a+o.length,0)
-  const allPastEntries=agenda.filter(([dk])=>isPast(parseDate(dk)))
+const allPastEntries=agenda.filter(([dk])=>isPast(parseDate(dk)))
   const allUpcoming=agenda.filter(([dk])=>!isPast(parseDate(dk)))
   const pastWeekGroups=[];let _lastWk=null
   allPastEntries.forEach(entry=>{ const wk=dateKey(getWeekMonday(parseDate(entry[0]))); if(wk!==_lastWk){pastWeekGroups.push([]);_lastWk=wk}; pastWeekGroups[pastWeekGroups.length-1].push(entry) })
@@ -1343,7 +1104,7 @@ export default function RelationshipScreen({ initialPets, initialUnits }){
             {isLoadingPast&&<div style={{width:18,height:18,border:`2px solid ${R.border}`,borderTopColor:R.blue,borderRadius:"50%",animation:"spin 0.7s linear infinite"}}/>}
           </div>
         )}
-        <AgendaView agenda={[...visiblePastEntries, ...allUpcoming]} upcomingRef={upcomingRef} currentWeekRef={currentWeekRef} firstUpcomingKey={allUpcoming[0]?.[0]} pets={pets} relEndDate={relEndDate} paidThruSunday={paidThruSunday} incompleteKey={incompleteKey} onTap={setActiveOcc} onReview={setReviewOcc}/>
+        <AgendaView agenda={[...visiblePastEntries, ...allUpcoming]} upcomingRef={upcomingRef} currentWeekRef={currentWeekRef} firstUpcomingKey={allUpcoming[0]?.[0]} relEndDate={relEndDate} incompleteKey={incompleteKey} onTap={setActiveOcc} onReview={setReviewOcc}/>
       </div>
       {currentWeekHidden&&(
         <div style={{position:"absolute",bottom:72,left:"50%",transform:"translateX(-50%)",zIndex:10,pointerEvents:"auto"}}>
