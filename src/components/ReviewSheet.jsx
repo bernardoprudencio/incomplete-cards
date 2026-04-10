@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { colors, typography, shadows } from '../tokens'
+import { colors, typography, shadows, textStyles } from '../tokens'
 import { petImages } from '../assets/images'
 import PetAvatar from './PetAvatar'
 import Button from './Button'
@@ -35,7 +35,7 @@ export default function ReviewSheet({ visible, card, onClose, onComplete, onCanc
           firstRow
         />
 
-        <p style={{ fontFamily: typography.fontFamily, fontWeight: 700, fontSize: 16, color: colors.primary, margin: '0 0 12px' }}>
+        <p style={{ fontFamily: typography.fontFamily, fontWeight: 600, fontSize: 16, color: colors.primary, margin: '0 0 12px' }}>
           Have you completed the walk?
         </p>
 
@@ -52,7 +52,7 @@ export default function ReviewSheet({ visible, card, onClose, onComplete, onCanc
           ))}
         </div>
 
-        <p style={{ fontFamily: typography.fontFamily, fontSize: 14, lineHeight: 1.5, color: colors.tertiary, margin: '0 0 20px' }}>
+        <p style={{ ...textStyles.paragraph100, color: colors.tertiary, margin: '0 0 20px' }}>
           {answer === 'yes'
             ? "There's no Rover Card, so your client won't see updates about their pet. We'll let them know the service is complete."
             : `A refund of ${card.cost} will automatically be processed.`}

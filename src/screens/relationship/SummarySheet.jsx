@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { R, fontFamily } from './theme'
+import { textStyles } from '../../tokens'
 import { computeScheduleDiff, shortRuleLabel } from '../../lib/scheduleHelpers'
 import { parseDate, fmtDate, fmtDateLong, fmtTime } from '../../lib/dateUtils'
 import BottomSheet from '../../components/BottomSheet'
@@ -73,10 +74,10 @@ export default function SummarySheet({ savedUnits, draftUnits, pets, onConfirm, 
   const header = (
     <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', paddingBottom: 24 }}>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <p style={{ fontFamily, fontWeight: 600, fontSize: 20, color: R.navy, margin: 0, lineHeight: 1.25 }}>
+        <p style={{ ...textStyles.heading300, color: R.navy, margin: 0 }}>
           {view === 'confirm' ? 'Confirm changes' : 'Review changes'}
         </p>
-        <p style={{ fontFamily, fontWeight: 400, fontSize: 14, color: R.gray, margin: '4px 0 0', lineHeight: 1.25 }}>
+        <p style={{ ...textStyles.text100, color: R.gray, margin: '4px 0 0' }}>
           {isEmpty ? 'No changes to save' : `${totalCount} change${totalCount !== 1 ? 's' : ''}`}
         </p>
       </div>
@@ -87,7 +88,7 @@ export default function SummarySheet({ savedUnits, draftUnits, pets, onConfirm, 
   if (isEmpty) {
     return (
       <BottomSheet variant="full" onDismiss={onBack} header={header}>
-        <p style={{ fontFamily, fontSize: 14, color: R.gray, margin: '0 0 24px', lineHeight: 1.5 }}>No changes to save.</p>
+        <p style={{ ...textStyles.paragraph100, color: R.gray, margin: '0 0 24px' }}>No changes to save.</p>
         <Button variant="default" size="small" fullWidth onClick={onBack}>Close</Button>
       </BottomSheet>
     )
@@ -96,7 +97,7 @@ export default function SummarySheet({ savedUnits, draftUnits, pets, onConfirm, 
   if (view === 'confirm') {
     return (
       <BottomSheet variant="full" onDismiss={() => setView('review')} header={header}>
-        <p style={{ fontFamily, fontSize: 14, color: R.navy, lineHeight: 1.5, margin: '0 0 4px' }}>
+        <p style={{ ...textStyles.paragraph100, color: R.navy, margin: '0 0 4px' }}>
           Are you sure you want to confirm these changes?
         </p>
         <p style={{ fontFamily, fontSize: 13, color: R.gray, lineHeight: 1.5, margin: '0 0 16px' }}>

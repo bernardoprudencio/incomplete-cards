@@ -1,7 +1,5 @@
-import { colors, typography } from '../tokens'
+import { colors, textStyles } from '../tokens'
 import { DropdownIcon } from '../assets/icons'
-
-const fontFamily = typography.fontFamily
 
 /**
  * DisabledInput — read-only display that visually matches the CalInput / end-date fields.
@@ -21,7 +19,7 @@ export default function DisabledInput({ value, icon }) {
       boxSizing: 'border-box',
       gap: 8,
     }}>
-      <span style={{ flex: 1, fontFamily, fontSize: 16, color: colors.disabledText, lineHeight: 1.5 }}>{value}</span>
+      <span style={{ ...textStyles.text200, flex: 1, color: colors.disabledText }}>{value}</span>
       {icon !== undefined ? icon : <DropdownIcon />}
     </div>
   )

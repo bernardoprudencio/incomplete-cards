@@ -1,4 +1,4 @@
-import { colors, typography } from '../../tokens'
+import { colors, typography, textStyles } from '../../tokens'
 
 export const fontFamily = typography.fontFamily
 
@@ -20,6 +20,6 @@ export const R = {
 }
 
 export const labelSt = {
-  display: 'block', fontSize: 14, fontWeight: 600,
-  color: R.navyMid, marginBottom: 4, fontFamily, lineHeight: 1.25,
+  ...textStyles.heading100,
+  display: 'block', color: R.navyMid, marginBottom: 4,
 }

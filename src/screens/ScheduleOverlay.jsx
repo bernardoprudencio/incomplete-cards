@@ -1,6 +1,6 @@
 import React, { useRef } from 'react'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
-import { colors, typography, shadows } from '../tokens'
+import { colors, shadows, textStyles } from '../tokens'
 import { BackIcon } from '../assets/icons'
 import { Button } from '../components'
 import RelationshipScreen from './relationship/RelationshipScreen'
@@ -33,8 +33,8 @@ export default function ScheduleOverlay() {
             <BackIcon />
           </div>
           <div style={{ flex: 1, marginLeft: 8, minWidth: 0 }}>
-            <p style={{ fontFamily: typography.fontFamily, fontWeight: 700, fontSize: 16, lineHeight: 1.5, color: colors.primary, margin: 0 }}>Manage schedule</p>
-            <p style={{ fontFamily: typography.fontFamily, fontSize: 14, lineHeight: 1.25, color: colors.primary, margin: 0 }}>{ctx?.ownerName}</p>
+            <p style={{ ...textStyles.text200Semibold, color: colors.primary, margin: 0 }}>Manage schedule</p>
+            <p style={{ ...textStyles.text100, color: colors.primary, margin: 0 }}>{ctx?.ownerName}</p>
           </div>
         </div>
         <div style={{ display: 'flex', gap: 8, paddingTop: 12, paddingBottom: 14 }}>

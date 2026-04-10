@@ -1,4 +1,5 @@
 import { R, fontFamily } from './theme'
+import { textStyles } from '../../tokens'
 import { SERVICES } from '../../data/services'
 import { parseDate, fmtDate } from '../../lib/dateUtils'
 import { getRuleImpact } from '../../lib/scheduleHelpers'
@@ -17,7 +18,7 @@ export default function DeleteConfirmDialog({unit, units, onDelete, onDeleteKeep
   return (
     <BottomSheet variant="full" onDismiss={onClose} zIndex={500} header={header}>
       <div style={{display:"flex",flexDirection:"column",gap:12}}>
-        <p style={{margin:0,fontSize:14,color:R.gray,fontFamily,lineHeight:1.5}}>
+        <p style={{...textStyles.paragraph100,margin:0,color:R.gray}}>
           {isOnce
             ? <>This will remove <strong style={{color:R.navy}}>{svc && svc.label}</strong> on {unit.startDate ? fmtDate(parseDate(unit.startDate)) : "(no date)"}. {hasPaid && "A refund will be issued per Rover's cancellation policy."}</>
             : <>This will remove the <strong style={{color:R.navy}}>{svc && svc.label}</strong> rule and cancel all upcoming sessions. {hasPaid && "Paid sessions will be refunded per Rover's cancellation policy."}</>

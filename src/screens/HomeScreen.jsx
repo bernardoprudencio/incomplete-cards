@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { colors, typography, shadows } from '../tokens'
+import { colors, shadows, textStyles } from '../tokens'
 import { BellIcon, ChevronUpIcon, ChevronDownIcon, EditIcon, MoreIcon } from '../assets/icons'
 import { petImages } from '../assets/images'
 import { formatHeaderDate } from '../hooks/useDate'
@@ -30,8 +30,8 @@ export default function HomeScreen({ onOpenActionSheet, onOpenReviewSheet, onOpe
       <div style={{ borderBottom: `1px solid ${colors.border}`, padding: '24px 16px 16px', flexShrink: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center' }}>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <h1 style={{ fontFamily: typography.displayFamily, fontWeight: 600, fontSize: 26, lineHeight: 1.25, color: colors.primary, margin: 0 }}>Your name</h1>
-            <p style={{ fontFamily: typography.fontFamily, fontSize: 14, lineHeight: 1.5, color: colors.primary, margin: '2px 0 0' }}>{formatHeaderDate()}</p>
+            <h1 style={{ ...textStyles.display400, color: colors.primary, margin: 0 }}>Your name</h1>
+            <p style={{ ...textStyles.paragraph100, color: colors.primary, margin: '2px 0 0' }}>{formatHeaderDate()}</p>
           </div>
           <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexShrink: 0 }}>
             <UserAvatar size={48} />
@@ -42,17 +42,17 @@ export default function HomeScreen({ onOpenActionSheet, onOpenReviewSheet, onOpe
 
       {/* ─── Scroll Content ─── */}
       <div className="hide-scrollbar" style={{ flex: 1, overflowY: 'auto', padding: '24px 16px' }}>
-        <p style={{ fontFamily: typography.fontFamily, fontSize: 14, color: colors.tertiary, margin: '0 0 8px' }}>Updated at {loadTime}</p>
+        <p style={{ ...textStyles.text100, color: colors.tertiary, margin: '0 0 8px' }}>Updated at {loadTime}</p>
 
         {/* ─── Incomplete section ─── */}
         {hasIncomplete && (
           <>
             <div onClick={() => setIncompleteOpen(o => !o)} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: '24px 0 8px', cursor: 'pointer' }}>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ fontFamily: typography.fontFamily, fontWeight: 700, fontSize: 20, lineHeight: 1.25, color: colors.primary, margin: 0 }}>
+                <p style={{ ...textStyles.heading300, color: colors.primary, margin: 0 }}>
                   Incomplete ({visibleCards.length})
                 </p>
-                <p style={{ fontFamily: typography.fontFamily, fontSize: 14, color: colors.tertiary, margin: '4px 0 0' }}>
+                <p style={{ ...textStyles.text100, color: colors.tertiary, margin: '4px 0 0' }}>
                   Complete all services to get paid on time.
                 </p>
               </div>
@@ -82,7 +82,7 @@ export default function HomeScreen({ onOpenActionSheet, onOpenReviewSheet, onOpe
         )}
 
         {/* ─── Today section ─── */}
-        <p style={{ fontFamily: typography.fontFamily, fontWeight: 700, fontSize: 20, lineHeight: 1.25, color: colors.primary, margin: '24px 0 8px' }}>Today</p>
+        <p style={{ ...textStyles.heading300, color: colors.primary, margin: '24px 0 8px' }}>Today</p>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {TODAY_WALKS.map((walk, i) => {
@@ -107,12 +107,12 @@ export default function HomeScreen({ onOpenActionSheet, onOpenReviewSheet, onOpe
           })}
           <div style={{ background: colors.white, borderRadius: 8, boxShadow: shadows.low, padding: 20, display: 'flex', gap: 12, alignItems: 'center' }}>
             <div style={{ flexShrink: 0 }}><EditIcon /></div>
-            <p style={{ fontFamily: typography.fontFamily, fontWeight: 700, fontSize: 14, color: colors.primary, margin: 0, flex: 1 }}>Manage weekly care for this week</p>
+            <p style={{ ...textStyles.heading100, color: colors.primary, margin: 0, flex: 1 }}>Manage weekly care for this week</p>
           </div>
         </div>
 
         {/* ─── Expand your business ─── */}
-        <p style={{ fontFamily: typography.fontFamily, fontWeight: 700, fontSize: 20, lineHeight: 1.25, color: colors.primary, margin: '24px 0 8px' }}>Expand your business</p>
+        <p style={{ ...textStyles.heading300, color: colors.primary, margin: '24px 0 8px' }}>Expand your business</p>
         <div style={{ display: 'flex', flexDirection: 'row', gap: 12, paddingBottom: 24 }}>
           {PROMO_CARDS.map((c, i) => (
             <div key={i} style={{ borderRadius: 8, overflow: 'hidden', boxShadow: shadows.low, background: c.bg, display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }}>
@@ -120,8 +120,8 @@ export default function HomeScreen({ onOpenActionSheet, onOpenReviewSheet, onOpe
                 <img src={c.img} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
               </div>
               <div style={{ flex: 1, padding: 16, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 6 }}>
-                <p style={{ fontFamily: typography.fontFamily, fontWeight: 700, fontSize: 16, lineHeight: 1.25, color: colors.primary, margin: 0 }}>{c.title}</p>
-                <p style={{ fontFamily: typography.fontFamily, fontSize: 14, lineHeight: 1.25, color: colors.tertiary, margin: 0 }}>{c.desc}</p>
+                <p style={{ ...textStyles.heading200, color: colors.primary, margin: 0 }}>{c.title}</p>
+                <p style={{ ...textStyles.text100, color: colors.tertiary, margin: 0 }}>{c.desc}</p>
                 <Button variant="flat" style={{ padding: '6px 0', justifyContent: 'flex-start' }}>{c.cta}</Button>
               </div>
             </div>

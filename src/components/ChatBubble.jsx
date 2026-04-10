@@ -1,5 +1,5 @@
 import React from 'react'
-import { colors, typography } from '../tokens'
+import { colors, typography, textStyles } from '../tokens'
 import { CheckIcon } from '../assets/icons'
 
 export default function ChatBubble({ message, time, isOwner = false, showCheck = false }) {
@@ -15,8 +15,7 @@ export default function ChatBubble({ message, time, isOwner = false, showCheck =
         padding: '8px 12px', maxWidth: '80%',
       }}>
         <p style={{
-          fontFamily: typography.fontFamily, fontSize: 14, lineHeight: 1.5,
-          color: colors.primary, margin: '0 0 4px', whiteSpace: 'pre-line',
+          ...textStyles.paragraph100, color: colors.primary, margin: '0 0 4px', whiteSpace: 'pre-line',
         }}>{message}</p>
         <div style={{
           display: 'flex', gap: 4, alignItems: 'center',

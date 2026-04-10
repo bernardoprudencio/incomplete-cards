@@ -163,7 +163,7 @@ export default function CalInput({ value, onChange, minDate, maxDate, placeholde
                 >
                   <span style={{
                     fontFamily, fontSize: 14, lineHeight: 1,
-                    fontWeight: isSel ? 700 : tod ? 600 : 400,
+                    fontWeight: isSel ? 600 : tod ? 600 : 400,
                     color: dis ? colors.disabledText : isSel ? '#fff' : tod ? colors.link : colors.primary,
                   }}>
                     {day}

@@ -51,7 +51,7 @@ export const shadows = {
 
 export const typography = {
   fontFamily:    "'Averta', sans-serif",
-  displayFamily: "'Bogart-Semibold', sans-serif",
+  displayFamily: "'Bogart', sans-serif",
 }
 
 export const spacing = {
@@ -61,4 +61,23 @@ export const spacing = {
   lg:  16,
   xl:  24,
   xxl: 32,
+}
+
+export const textStyles = {
+  // Display — Bogart Semibold
+  display400:      { fontFamily: "'Bogart', sans-serif",  fontWeight: 600, fontSize: 26, lineHeight: 1.25 },
+
+  // Headings — Averta Semibold
+  heading300:      { fontFamily: "'Averta', sans-serif",  fontWeight: 600, fontSize: 20, lineHeight: 1.25 },
+  heading200:      { fontFamily: "'Averta', sans-serif",  fontWeight: 600, fontSize: 16, lineHeight: 1.25 },
+  heading100:      { fontFamily: "'Averta', sans-serif",  fontWeight: 600, fontSize: 14, lineHeight: 1.25 },
+
+  // Text — Averta Regular
+  text200:         { fontFamily: "'Averta', sans-serif",  fontWeight: 400, fontSize: 16, lineHeight: 1.5  },
+  text100:         { fontFamily: "'Averta', sans-serif",  fontWeight: 400, fontSize: 14, lineHeight: 1.25 },
+  paragraph100:    { fontFamily: "'Averta', sans-serif",  fontWeight: 400, fontSize: 14, lineHeight: 1.5  },
+
+  // Text — Averta Semibold
+  text200Semibold: { fontFamily: "'Averta', sans-serif",  fontWeight: 600, fontSize: 16, lineHeight: 1.5  },
+  text100Semibold: { fontFamily: "'Averta', sans-serif",  fontWeight: 600, fontSize: 14, lineHeight: 1.5  },
 }

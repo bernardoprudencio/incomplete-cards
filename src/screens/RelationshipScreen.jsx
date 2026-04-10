@@ -205,7 +205,6 @@ function UnitEditor({unit, onChange, allUnits, allPets, simplified=false, timeOn
   const svc=SERVICES.find(s=>s.id===unit.serviceId)
   const overnight=(svc&&svc.type)==="overnight"
   const isDaycare=(svc&&svc.id)==="doggy_daycare"
-  const conflict=overlaps(allUnits,unit)
   const repeats=unit.frequency!=="once"
   const isWeekly=unit.frequency==="weekly"
   const canRepeat=overnightCanRepeat(unit)
@@ -230,7 +229,6 @@ function UnitEditor({unit, onChange, allUnits, allPets, simplified=false, timeOn
 
   return(
     <div style={{marginBottom:12}}>
-      {conflict&&<div style={{fontSize:12,background:R.redLight,color:R.red,fontWeight:600,padding:"8px 12px",borderRadius:8,marginBottom:10}}>⚠ Conflict with another service</div>}
       {overnight?(
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:14}}>
           <div><label style={labelSt}>Check-in</label><CalInput value={unit.startDate} onChange={v=>onChange({...unit,startDate:v})} placeholder="Check-in date" bookedDates={bookedDates}/></div>

@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { colors, typography, spacing } from '../tokens'
+import { colors, spacing, textStyles } from '../tokens'
 import TabBar from '../components/TabBar'
 import Chip from '../components/Chip'
 import ThreadRow from '../components/ThreadRow'
@@ -49,10 +49,7 @@ export default function InboxScreen() {
         background: colors.white,
       }}>
         <h1 style={{
-          fontFamily: typography.displayFamily,
-          fontSize: 26,
-          fontWeight: 600,
-          lineHeight: 1.25,
+          ...textStyles.display400,
           color: colors.primary,
           margin: 0,
         }}>Inbox</h1>
@@ -106,10 +103,7 @@ export default function InboxScreen() {
       }}>
         <DropdownIcon />
         <span style={{
-          fontFamily: typography.fontFamily,
-          fontWeight: 600,
-          fontSize: 14,
-          lineHeight: 1.25,
+          ...textStyles.heading100,
           color: colors.secondary,
         }}>Sorted by recent activity</span>
       </div>
@@ -125,8 +119,7 @@ export default function InboxScreen() {
             padding: spacing.xl,
           }}>
             <p style={{
-              fontFamily: typography.fontFamily,
-              fontSize: 14,
+              ...textStyles.text100,
               color: colors.tertiary,
               textAlign: 'center',
               margin: 0,

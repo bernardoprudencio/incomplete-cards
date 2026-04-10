@@ -27,7 +27,7 @@ export default function Button({ children, variant = 'default', size = 'small', 
       onClick={disabled ? undefined : onClick}
       style={{
         fontFamily: typography.fontFamily,
-        fontWeight: 700,
+        fontWeight: 600,
         fontSize: s.fontSize,
         lineHeight: '1.25',
         borderRadius: radius.round,

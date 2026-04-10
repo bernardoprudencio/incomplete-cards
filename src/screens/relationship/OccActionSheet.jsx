@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { R, fontFamily } from './theme'
+import { R } from './theme'
+import { textStyles } from '../../tokens'
 import { dateKey, fmtDate, fmtDateLong, fmtTime, addDays, nightCount, endTimeFromDuration } from '../../lib/dateUtils'
 import { shortSvcName } from '../../lib/scheduleHelpers'
 import Button from '../../components/Button'
@@ -63,7 +64,7 @@ export default function OccActionSheet({occ, allPets, onSaveUnit, onSkip, onOver
         <UnitEditor unit={draft} onChange={setDraft} allUnits={[]} allPets={allPets} timeOnly/>
         <div onClick={handleRemove} style={{display:"flex",alignItems:"center",gap:10,minHeight:48,paddingTop:4,paddingBottom:12,cursor:"pointer"}}>
           <CancelIcon color={R.red}/>
-          <p style={{fontFamily,fontWeight:400,fontSize:16,color:R.red,margin:0,lineHeight:1.5}}>Remove {svcName}</p>
+          <p style={{...textStyles.text200,color:R.red,margin:0}}>Remove {svcName}</p>
         </div>
         <Button variant="primary" size="small" fullWidth onClick={handleSave}>Save changes</Button>
         <div style={{marginTop:12}}><Button variant="default" size="small" fullWidth onClick={onClose}>Close</Button></div>

@@ -1,5 +1,5 @@
 import React from 'react'
-import { colors, typography, spacing } from '../tokens'
+import { colors, spacing, textStyles } from '../tokens'
 import { peopleImages } from '../assets/images'
 
 const dateOnly = (ts) => ts.replace(/\s+\d{1,2}:\d{2}\s*(AM|PM)/i, '').trim()
@@ -30,30 +30,30 @@ export default function ThreadRow({ thread, owner, displayMessage, onClick }) {
               />
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <p style={{ fontFamily: typography.fontFamily, fontWeight: 600, fontSize: 14, lineHeight: 1.25, color: colors.primary, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{owner.name}</p>
-              <p style={{ fontFamily: typography.fontFamily, fontWeight: 400, fontSize: 14, lineHeight: 1.25, color: colors.tertiary, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{owner.petNames}</p>
+              <p style={{ ...textStyles.heading100, color: colors.primary, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{owner.name}</p>
+              <p style={{ ...textStyles.text100, color: colors.tertiary, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{owner.petNames}</p>
             </div>
             <div style={{ flexShrink: 0 }}>
-              <p style={{ fontFamily: typography.fontFamily, fontWeight: 400, fontSize: 14, lineHeight: 1.25, color: colors.tertiary, margin: 0, textAlign: 'right', whiteSpace: 'nowrap' }}>{dateOnly(displayMessage.timestamp)}</p>
+              <p style={{ ...textStyles.text100, color: colors.tertiary, margin: 0, textAlign: 'right', whiteSpace: 'nowrap' }}>{dateOnly(displayMessage.timestamp)}</p>
             </div>
           </div>
 
           {/* Message snippet */}
-          <p style={{ fontFamily: typography.fontFamily, fontWeight: 400, fontSize: 14, lineHeight: 1.25, color: colors.primary, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{snippet}</p>
+          <p style={{ ...textStyles.text100, color: colors.primary, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{snippet}</p>
 
           {/* Service detail */}
-          <p style={{ fontFamily: typography.fontFamily, fontWeight: 400, fontSize: 14, lineHeight: 1.25, color: colors.tertiary, margin: 0, paddingTop: spacing.lg, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{serviceLabel}</p>
+          <p style={{ ...textStyles.text100, color: colors.tertiary, margin: 0, paddingTop: spacing.lg, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{serviceLabel}</p>
 
           {/* Status */}
           <div style={{ paddingTop: spacing.sm }}>
-            <p style={{ fontFamily: typography.fontFamily, fontWeight: 400, fontSize: 14, lineHeight: 1.25, color: colors.success, margin: 0 }}>Ongoing</p>
+            <p style={{ ...textStyles.text100, color: colors.success, margin: 0 }}>Ongoing</p>
           </div>
 
           {/* Alert banner */}
           {alert && (
             <div style={{ paddingTop: spacing.lg }}>
               <div style={{ background: colors.blueLight, borderRadius: 8, padding: '8px 16px', display: 'flex', alignItems: 'center', gap: spacing.sm }}>
-                <p style={{ fontFamily: typography.fontFamily, fontWeight: 600, fontSize: 14, lineHeight: 1.25, color: colors.link, textDecoration: 'underline', margin: 0, flex: 1 }}>{alert}</p>
+                <p style={{ ...textStyles.heading100, color: colors.link, textDecoration: 'underline', margin: 0, flex: 1 }}>{alert}</p>
                 <span style={{ color: colors.link, fontSize: 16 }}>›</span>
               </div>
             </div>

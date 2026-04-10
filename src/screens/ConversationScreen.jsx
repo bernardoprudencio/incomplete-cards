@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
-import { colors, typography, shadows } from '../tokens'
+import { colors, shadows, typography, textStyles } from '../tokens'
 import { BackIcon, MoreIcon, ImageIcon, SendIcon } from '../assets/icons'
 import { OWNERS } from '../data/owners'
 import { getOwnerRelUnit } from '../data/scheduleData'
@@ -11,7 +11,7 @@ import { useAppContext } from '../context/AppContext'
 
 const DayDivider = ({ label }) => (
   <div style={{ display: 'flex', justifyContent: 'center', padding: '16px 0' }}>
-    <span style={{ fontFamily: typography.fontFamily, fontWeight: 700, fontSize: 14, color: colors.tertiary }}>{label}</span>
+    <span style={{ ...textStyles.heading100, color: colors.tertiary }}>{label}</span>
   </div>
 )
 
@@ -80,8 +80,8 @@ export default function ConversationScreen() {
             <PetAvatar size={48} images={[clientImg]} />
           </div>
           <div style={{ flex: 1, marginLeft: 8, minWidth: 0 }}>
-            <p style={{ fontFamily: typography.fontFamily, fontWeight: 700, fontSize: 16, lineHeight: 1.5, color: colors.primary, margin: 0 }}>{clientName}</p>
-            <p style={{ fontFamily: typography.fontFamily, fontSize: 14, lineHeight: 1.25, color: colors.success, margin: 0 }}>Ongoing</p>
+            <p style={{ ...textStyles.text200Semibold, color: colors.primary, margin: 0 }}>{clientName}</p>
+            <p style={{ ...textStyles.text100, color: colors.success, margin: 0 }}>Ongoing</p>
           </div>
           <div style={{ cursor: 'pointer', flexShrink: 0 }}><MoreIcon /></div>
         </div>

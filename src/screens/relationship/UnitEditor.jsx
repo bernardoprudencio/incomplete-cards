@@ -1,15 +1,16 @@
 import { useMemo } from 'react'
 import { R, fontFamily, labelSt } from './theme'
+import { textStyles } from '../../tokens'
 import { SERVICES, DURATION_SHORT, DURATION_DAYCARE, FREQ, WEEKDAYS } from '../../data/services'
 import { PETS_SEED } from '../../data/owners'
 import { parseDate, dateKey, fmtDate, fmtDateLong, fmtTime, addDays, endTimeFromDuration } from '../../lib/dateUtils'
-import { overlaps, overnightCanRepeat, expandUnit } from '../../lib/scheduleHelpers'
+import { overnightCanRepeat, expandUnit } from '../../lib/scheduleHelpers'
 import CalInput from '../../components/CalInput'
 import TimeInput from '../../components/TimeInput'
 
 // ── Chip ──────────────────────────────────────────────────────────────────────
 function Chip({label, active, onClick, small, danger}) {
-  const base = {padding:small?"4px 10px":"10px 16px",borderRadius:8,fontSize:14,fontWeight:600,cursor:"pointer",fontFamily,lineHeight:1.25,transition:"all 0.12s",display:"inline-flex",alignItems:"center",justifyContent:"center",gap:6}
+  const base = {...textStyles.heading100,padding:small?"4px 10px":"10px 16px",borderRadius:8,cursor:"pointer",transition:"all 0.12s",display:"inline-flex",alignItems:"center",justifyContent:"center",gap:6}
   if(danger) return <button onClick={onClick} style={{...base,border:`2px solid ${R.red}`,background:R.redLight,color:R.red}}>{label}</button>
   if(active) return (
     <button onClick={onClick} style={{...base,border:`2px solid #2E67D1`,background:"#ECF1FB",color:R.navy}}>
@@ -31,7 +32,7 @@ function PetSelector({pets, selectedIds, onChange}) {
       {pets.map(p => {
         const on = selectedIds.includes(p.id)
         return (
-          <button key={p.id} onClick={() => toggle(p.id)} style={{padding:"10px 16px",borderRadius:8,fontSize:14,fontWeight:600,cursor:"pointer",border:on?`2px solid #2E67D1`:`2px solid ${R.border}`,background:on?"#ECF1FB":"#fff",color:on?R.navy:R.gray,fontFamily,lineHeight:1.25,transition:"all 0.12s",display:"inline-flex",alignItems:"center",gap:6}}>
+          <button key={p.id} onClick={() => toggle(p.id)} style={{...textStyles.heading100,padding:"10px 16px",borderRadius:8,cursor:"pointer",border:on?`2px solid #2E67D1`:`2px solid ${R.border}`,background:on?"#ECF1FB":"#fff",color:on?R.navy:R.gray,transition:"all 0.12s",display:"inline-flex",alignItems:"center",gap:6}}>
             {on && <svg width="16" height="16" viewBox="0 0 32 32" fill="#2E67D1"><path d="M26.191 4.412a1 1 0 1 1 1.618 1.176l-16 22a1 1 0 0 1-1.516.12l-6-6a1 1 0 1 1 1.414-1.415l5.173 5.172L26.19 4.412z"/></svg>}
             {p.name}
           </button>
@@ -46,7 +47,6 @@ export default function UnitEditor({unit, onChange, allUnits, allPets, simplifie
   const svc          = SERVICES.find(s => s.id === unit.serviceId)
   const overnight    = (svc && svc.type) === "overnight"
   const isDaycare    = (svc && svc.id) === "doggy_daycare"
-  const conflict     = overlaps(allUnits, unit)
   const repeats      = unit.frequency !== "once"
   const isWeekly     = unit.frequency === "weekly"
   const canRepeat    = overnightCanRepeat(unit)
@@ -68,14 +68,13 @@ export default function UnitEditor({unit, onChange, allUnits, allPets, simplifie
       <div style={{marginBottom:20}}>
         <label style={labelSt}>Start time</label>
         <TimeInput value={unit.startTime} onChange={v => onChange({...unit, startTime:v})} placeholder="Select time…"/>
-        {unit.startTime && unit.durationMins && <div style={{fontSize:14,color:R.gray,marginTop:4,lineHeight:1.5}}>Ends at {fmtTime(endTimeFromDuration(unit.startTime, unit.durationMins))}</div>}
+        {unit.startTime && unit.durationMins && <div style={{...textStyles.paragraph100,color:R.gray,marginTop:4}}>Ends at {fmtTime(endTimeFromDuration(unit.startTime, unit.durationMins))}</div>}
       </div>
     </div>
   )
 
   return (
     <div style={{marginBottom:12}}>
-      {conflict && <div style={{fontSize:12,background:R.redLight,color:R.red,fontWeight:600,padding:"8px 12px",borderRadius:8,marginBottom:10}}>⚠ Conflict with another service</div>}
       {overnight ? (
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:14}}>
           <div><label style={labelSt}>Check-in</label><CalInput value={unit.startDate} onChange={v => onChange({...unit,startDate:v})} placeholder="Check-in date" maxDate={maxDate} bookedDates={bookedDates}/></div>
@@ -85,7 +84,7 @@ export default function UnitEditor({unit, onChange, allUnits, allPets, simplifie
         <div style={{marginBottom:20}}>
           <div style={{marginBottom:20}}><label style={labelSt}>Date</label><CalInput value={unit.startDate} onChange={v => { const updated = {...unit,startDate:v}; if(isWeekly) updated.weekDays = [parseDate(v).getDay()]; onChange(updated) }} placeholder="Select date" maxDate={maxDate} bookedDates={bookedDates}/></div>
           <div><label style={labelSt}>Start time</label><TimeInput value={unit.startTime} onChange={v => onChange({...unit,startTime:v})} placeholder="Select time"/>
-            {unit.startTime && unit.durationMins && <div style={{fontSize:14,color:R.gray,marginTop:4,lineHeight:1.5}}>Ends at {fmtTime(endTimeFromDuration(unit.startTime, unit.durationMins))}</div>}
+            {unit.startTime && unit.durationMins && <div style={{...textStyles.paragraph100,color:R.gray,marginTop:4}}>Ends at {fmtTime(endTimeFromDuration(unit.startTime, unit.durationMins))}</div>}
           </div>
         </div>
       )}

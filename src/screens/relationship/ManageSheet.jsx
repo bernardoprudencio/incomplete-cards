@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { R, fontFamily, labelSt } from './theme'
+import { textStyles } from '../../tokens'
 import { SERVICES } from '../../data/services'
 import { PROTO_TODAY } from '../../data/owners'
 import { parseDate, dateKey, fmtDate, fmtDateLong, fmtTime, addDays, endTimeFromDuration } from '../../lib/dateUtils'
@@ -76,17 +77,17 @@ export default function ManageSheet({units, pets, onUnitsChange, onClose, onAdd}
     view === "list" ? (
       <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",paddingBottom:24}}>
         <div style={{flex:1,minWidth:0}}>
-          <p style={{fontFamily,fontWeight:600,fontSize:20,color:R.navy,margin:0,lineHeight:1.25}}>Recurring rules</p>
-          <p style={{fontFamily,fontWeight:400,fontSize:14,color:R.gray,margin:"4px 0 0",lineHeight:1.25}}>{subtitle}</p>
+          <p style={{...textStyles.heading300,color:R.navy,margin:0}}>Recurring rules</p>
+          <p style={{...textStyles.text100,color:R.gray,margin:"4px 0 0"}}>{subtitle}</p>
         </div>
         <PetAvatar size={48} images={pets.map(p => p.img)}/>
       </div>
     ) : view === "edit" && u ? (
       <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",paddingBottom:24}}>
         <div style={{flex:1,minWidth:0}}>
-          <p style={{fontFamily,fontWeight:600,fontSize:20,color:R.navy,margin:0,lineHeight:1.25}}>Edit rule: {fmtTime(u.startTime)}</p>
-          <p style={{fontFamily,fontWeight:400,fontSize:14,color:R.gray,margin:"4px 0 0",lineHeight:1.25}}>{editRecurrenceLabel}</p>
-          <p style={{fontFamily,fontWeight:400,fontSize:14,color:R.gray,margin:"2px 0 0",lineHeight:1.25}}>{editDateLabel}</p>
+          <p style={{...textStyles.heading300,color:R.navy,margin:0}}>Edit rule: {fmtTime(u.startTime)}</p>
+          <p style={{...textStyles.text100,color:R.gray,margin:"4px 0 0"}}>{editRecurrenceLabel}</p>
+          <p style={{...textStyles.text100,color:R.gray,margin:"2px 0 0"}}>{editDateLabel}</p>
         </div>
         <PetAvatar size={48} images={pets.map(p => p.img)}/>
       </div>
@@ -123,7 +124,7 @@ export default function ManageSheet({units, pets, onUnitsChange, onClose, onAdd}
         <div style={{marginBottom:24}}>
           <label style={labelSt}>Start time</label>
           <TimeInput value={u.startTime} onChange={v => setEditingUnit({...u, startTime:v})} placeholder="Select time"/>
-          {u.startTime && u.durationMins && <p style={{fontFamily,fontSize:14,color:R.gray,margin:"4px 0 0",lineHeight:1.5}}>Ends at {fmtTime(editEndT)}</p>}
+          {u.startTime && u.durationMins && <p style={{...textStyles.paragraph100,color:R.gray,margin:"4px 0 0"}}>Ends at {fmtTime(editEndT)}</p>}
         </div>
         {isWeekly && (
           <div style={{marginBottom:24}}>
@@ -143,7 +144,7 @@ export default function ManageSheet({units, pets, onUnitsChange, onClose, onAdd}
         </div>
         <div onClick={cancelTemplate} style={{display:"flex",alignItems:"center",gap:10,minHeight:56,paddingTop:8,paddingBottom:8,cursor:"pointer"}}>
           <CancelIcon color={R.red}/>
-          <p style={{fontFamily,fontWeight:400,fontSize:16,color:R.red,margin:0,lineHeight:1.5}}>Cancel rule</p>
+          <p style={{...textStyles.text200,color:R.red,margin:0}}>Cancel rule</p>
         </div>
         <div style={{marginTop:16}}>
           <Button variant="primary" size="small" fullWidth onClick={() => updateUnit(u)}>Save changes</Button>

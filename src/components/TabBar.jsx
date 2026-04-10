@@ -49,7 +49,7 @@ export default function TabBar() {
           >
             <Icon color={iconColor} />
             <span style={{
-              fontFamily: typography.fontFamily, fontWeight: 700,
+              fontFamily: typography.fontFamily, fontWeight: 600,
               fontSize: 10, textTransform: 'uppercase', letterSpacing: 0.07,
               color: iconColor, lineHeight: '13px',
             }}>{label}</span>

@@ -1,5 +1,5 @@
 import React from 'react'
-import { colors, typography, shadows } from '../tokens'
+import { colors, typography, shadows, textStyles } from '../tokens'
 import { MapIcon, PawIcon } from '../assets/icons'
 import PetAvatar from './PetAvatar'
 import Button from './Button'
@@ -12,8 +12,8 @@ export default function HomeCard({ time, service, address, petNames, petImages, 
     }}>
       <div style={{ display: 'flex', gap: 12, alignItems: 'center', padding: '8px 0' }}>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <p style={{ fontFamily: typography.fontFamily, fontWeight: 700, fontSize: 16, lineHeight: 1.5, color: colors.primary, margin: 0 }}>{time}</p>
-          <p style={{ fontFamily: typography.fontFamily, fontSize: 14, lineHeight: 1.25, color: colors.secondary, margin: 0 }}>{service}</p>
+          <p style={{ ...textStyles.text200Semibold, color: colors.primary, margin: 0 }}>{time}</p>
+          <p style={{ ...textStyles.text100, color: colors.secondary, margin: 0 }}>{service}</p>
         </div>
         <PetAvatar size={48} images={petImages} />
       </div>

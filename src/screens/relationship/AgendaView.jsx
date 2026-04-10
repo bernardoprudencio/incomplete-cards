@@ -5,7 +5,7 @@ import { parseDate, dateKey, fmtDate, fmtMonthYear, fmtTime, addDays, isToday, i
 import { getWeekMonday, shortRuleLabel } from '../../lib/scheduleHelpers'
 import Button from '../../components/Button'
 import PetAvatar from '../../components/PetAvatar'
-import { typography } from '../../tokens'
+import { textStyles } from '../../tokens'
 import { MoreIcon, ChevronDownIcon, CheckIcon } from '../../assets/icons'
 
 const DAY_NAMES_FULL = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
@@ -36,7 +36,7 @@ export default function AgendaView({agenda, pets, onAdd, allEnded, upcomingRef, 
     <div style={{display:'flex',flexDirection:'column',alignItems:'center',padding:'48px 24px 120px',gap:24}}>
       <PetAvatar size={80} images={(pets || []).map(p => p.img)}/>
       <div style={{textAlign:'center'}}>
-        <p style={{fontFamily:typography.displayFamily,fontSize:26,fontWeight:600,color:R.navy,margin:'0 0 10px',lineHeight:1.25}}>
+        <p style={{...textStyles.display400,color:R.navy,margin:'0 0 10px'}}>
           No walks scheduled after this
         </p>
         <p style={{fontFamily,fontSize:14,color:R.gray,margin:0,lineHeight:1.6}}>
@@ -110,7 +110,7 @@ export default function AgendaView({agenda, pets, onAdd, allEnded, upcomingRef, 
               onClick={() => { if (mo === activeMo) setShowJump(v => !v) }}
               style={{display:"flex",alignItems:"center",width:"100%",background:"none",border:"none",cursor:mo === activeMo ? "pointer" : "default",padding:0}}
             >
-              <p style={{fontFamily,fontWeight:600,fontSize:20,color:R.navy,margin:0,lineHeight:1.25,flex:1,textAlign:"left"}}>{label}</p>
+              <p style={{...textStyles.heading300,color:R.navy,margin:0,flex:1,textAlign:"left"}}>{label}</p>
               {mo === activeMo && <ChevronDownIcon />}
             </button>
             {mo === activeMo && showJump && <>
@@ -160,8 +160,8 @@ export default function AgendaView({agenda, pets, onAdd, allEnded, upcomingRef, 
             return (
               <div key={wk}>
                 <div ref={isCurrentWk ? currentWeekRef : null} style={{paddingTop:16,paddingBottom:8}}>
-                  <p style={{fontFamily,fontWeight:600,fontSize:16,color:isGapWeek ? R.grayLight : R.navy,margin:0,lineHeight:1.25}}>Week of {fmtDate(monday)}</p>
-                  <p style={{fontFamily,fontSize:14,color:paymentColor,margin:"4px 0 0",lineHeight:1.25}}>{paymentLabel}</p>
+                  <p style={{...textStyles.heading200,color:isGapWeek ? R.grayLight : R.navy,margin:0}}>Week of {fmtDate(monday)}</p>
+                  <p style={{...textStyles.text100,color:paymentColor,margin:"4px 0 0"}}>{paymentLabel}</p>
                 </div>
                 {!isGapWeek && entries.map(([dayKey, occs], entryIdx) => {
                   const d             = parseDate(dayKey)
@@ -171,7 +171,7 @@ export default function AgendaView({agenda, pets, onAdd, allEnded, upcomingRef, 
                   return (
                     <div key={dayKey} data-day-key={dayKey} ref={dayKey === firstUpcomingKey ? upcomingRef : null} style={{marginBottom:16}}>
                       <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
-                        <p style={{fontFamily,fontWeight:600,fontSize:14,color:R.navy,margin:0,lineHeight:1.25,flex:1}}>{DAY_NAMES_FULL[d.getDay()]}</p>
+                        <p style={{...textStyles.heading100,color:R.navy,margin:0,flex:1}}>{DAY_NAMES_FULL[d.getDay()]}</p>
                         <div style={{background:"#FFECBD",borderRadius:8,width:40,height:40,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
                           <span style={{fontSize:13,fontWeight:600,color:R.navy,fontFamily,lineHeight:1}}>{d.getDate()}</span>
                         </div>
@@ -208,8 +208,8 @@ export default function AgendaView({agenda, pets, onAdd, allEnded, upcomingRef, 
                           <div key={`${occ.key}-${occ.nightIndex || 0}`} style={{border:`2px solid ${flagBorder}`,borderRadius:8,padding:"0 16px",background:isRemoved?'#FDF2F2':R.white,marginBottom:8}}>
                             <div style={{display:"flex",alignItems:"center",gap:8,paddingTop:16,paddingBottom:isOccToday || showReviewBtn ? 8 : 16}}>
                               <div style={{flex:1}}>
-                                <p style={{fontFamily,fontWeight:600,fontSize:16,color:headingColor,margin:"0 0 4px",lineHeight:1.5}}>{headingText}</p>
-                                <p style={{fontFamily,fontSize:14,color:R.gray,margin:0,lineHeight:1.25}}>{shortRuleLabel(occ.unit)}</p>
+                                <p style={{...textStyles.text200Semibold,color:headingColor,margin:"0 0 4px"}}>{headingText}</p>
+                                <p style={{...textStyles.text100,color:R.gray,margin:0}}>{shortRuleLabel(occ.unit)}</p>
                               </div>
                               {!past && !showReviewBtn && !isRemoved && <Button variant="default" icon={<MoreIcon size={16}/>} onClick={e => {e.stopPropagation(); onTap(occ)}}/>}
                               {past && !showReviewBtn && !isRemoved && <div style={{width:32,height:32,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><CheckIcon /></div>}
