@@ -10,11 +10,11 @@ const SIZES = {
 
 // Matches Kibble button variant theme tokens
 const VARIANTS = {
-  default:     { background: colors.white,      borderColor: colors.borderInteractive, color: colors.secondary, boxShadow: 'none' },
-  primary:     { background: colors.link,       borderColor: 'transparent',            color: colors.white,     boxShadow: shadows.medium },
-  flat:        { background: 'transparent',     borderColor: 'transparent',            color: colors.link,      boxShadow: 'none' },
-  disabled:    { background: colors.disabledBg, borderColor: colors.disabledBorder,    color: colors.disabledText, boxShadow: 'none' },
-  destructive: { background: colors.destructive, borderColor: 'transparent',            color: colors.white,     boxShadow: shadows.medium },
+  default:     { background: colors.background.primary,      borderColor: colors.border.primary, color: colors.text.secondary, boxShadow: 'none' },
+  primary:     { background: colors.link.primary,       borderColor: 'transparent',            color: colors.background.primary,     boxShadow: shadows.medium },
+  flat:        { background: 'transparent',     borderColor: 'transparent',            color: colors.link.primary,      boxShadow: 'none' },
+  disabled:    { background: colors.interactive.bgDisabled, borderColor: colors.interactive.borderDisabled,    color: colors.text.disabled, boxShadow: 'none' },
+  destructive: { background: colors.text.error, borderColor: 'transparent',            color: colors.background.primary,     boxShadow: shadows.medium },
 }
 
 export default function Button({ children, variant = 'default', size = 'small', disabled = false, fullWidth = false, onClick, icon, style = {} }) {

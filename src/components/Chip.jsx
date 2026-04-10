@@ -3,13 +3,13 @@ import { colors, typography, radius } from '../tokens'
 
 // Inline SVGs to keep the component self-contained
 const CloseSmIcon = ({ hover }) => (
-  <svg width="16" height="16" viewBox="0 0 32 32" fill={hover ? colors.primary : colors.secondary}>
+  <svg width="16" height="16" viewBox="0 0 32 32" fill={hover ? colors.text.primary : colors.text.secondary}>
     <path d="M17.414 16l7.293-7.293a1 1 0 0 0-1.414-1.414L16 14.586 8.707 7.293a1 1 0 0 0-1.414 1.414L14.586 16l-7.293 7.293a1 1 0 0 0 1.414 1.414L16 17.414l7.293 7.293a1 1 0 0 0 1.414-1.414L17.414 16z"/>
   </svg>
 )
 
 const CheckSmIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 32 32" fill={colors.link} style={{ flexShrink: 0 }}>
+  <svg width="16" height="16" viewBox="0 0 32 32" fill={colors.link.primary} style={{ flexShrink: 0 }}>
     <path d="M26.191 4.412a1 1 0 1 1 1.618 1.176l-16 22a1 1 0 0 1-1.516.12l-6-6a1 1 0 1 1 1.414-1.415l5.173 5.172L26.19 4.412z"/>
   </svg>
 )
@@ -33,8 +33,8 @@ export default function Chip({ label, selected, onClick, onRemove, checkmark }) 
         onMouseDown={onClick}
         style={{
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-          background: selected ? colors.blueLight : colors.white,
-          border: `2px solid ${selected ? colors.link : colors.borderInteractive}`,
+          background: selected ? colors.background.info : colors.background.primary,
+          border: `2px solid ${selected ? colors.link.primary : colors.border.primary}`,
           borderRadius: radius.primary, padding: '8px 12px', minWidth: 88,
           cursor: onClick ? 'pointer' : 'default',
           userSelect: 'none', transition: 'border-color 0.1s, background 0.1s',
@@ -43,7 +43,7 @@ export default function Chip({ label, selected, onClick, onRemove, checkmark }) 
         {checkmark && selected && <CheckSmIcon />}
         <span style={{
           fontFamily: typography.fontFamily, fontWeight: 600, fontSize: 14,
-          color: selected ? colors.primary : colors.secondary, whiteSpace: 'nowrap',
+          color: selected ? colors.text.primary : colors.text.secondary, whiteSpace: 'nowrap',
         }}>
           {label}
         </span>
@@ -53,7 +53,7 @@ export default function Chip({ label, selected, onClick, onRemove, checkmark }) 
             onMouseEnter={() => setXHover(true)}
             onMouseLeave={() => setXHover(false)}
             style={{
-              background: xHover ? colors.bgTertiary : 'none', border: 'none',
+              background: xHover ? colors.background.tertiary : 'none', border: 'none',
               padding: 2, cursor: 'pointer', display: 'flex', alignItems: 'center',
               flexShrink: 0, borderRadius: 4, transition: 'background 0.1s',
             }}

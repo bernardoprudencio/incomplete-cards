@@ -15,11 +15,11 @@ export default function DisabledInput({ value, icon }) {
       padding: '12px 8px 12px 12px',
       border: `2px solid #C9CFD4`,
       borderRadius: 4,
-      background: colors.bgSecondary,
+      background: colors.background.secondary,
       boxSizing: 'border-box',
       gap: 8,
     }}>
-      <span style={{ ...textStyles.text200, flex: 1, color: colors.disabledText }}>{value}</span>
+      <span style={{ ...textStyles.text200, flex: 1, color: colors.text.disabled }}>{value}</span>
       {icon !== undefined ? icon : <DropdownIcon />}
     </div>
   )

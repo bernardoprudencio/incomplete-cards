@@ -1,9 +1,10 @@
 import React from 'react'
 import { colors } from '../tokens'
 
-const c = colors
+const primary  = colors.text.primary
+const tertiary = colors.text.tertiary
 
-const Icon = ({ name, size = 24, color = c.primary, style = {} }) => (
+const Icon = ({ name, size = 24, color = primary, style = {} }) => (
   <i
     className={`rover-icon-${name}`}
     style={{ fontSize: size, color, lineHeight: 1, display: 'inline-block', ...style }}
@@ -11,28 +12,28 @@ const Icon = ({ name, size = 24, color = c.primary, style = {} }) => (
 )
 
 export const BackIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 32 32" fill={c.primary}>
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 32 32" fill={primary}>
     <path transform="scale(-1,1) translate(-32,0)" d="M12.32 22.27l5.442-6.35-5.442-6.348a1 1 0 1 1 1.518-1.302l5.722 6.675a1.5 1.5 0 0 1 0 1.952l-5.721 6.675a1 1 0 1 1-1.519-1.302z"/>
   </svg>
 )
 export const BellIcon = () => <Icon name="in-bell" />
 export const ChevronUpIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 32 32" fill={c.tertiary}>
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 32 32" fill={tertiary}>
     <path d="M22.35 19.6L16 14.159l-6.35 5.443a1 1 0 1 1-1.3-1.519l6.674-5.72a1.5 1.5 0 0 1 1.952 0l6.675 5.72a1 1 0 0 1-1.302 1.519z"/>
   </svg>
 )
 export const ChevronDownIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 32 32" fill={c.tertiary}>
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 32 32" fill={tertiary}>
     <path d="M22.35 12.24a1 1 0 1 1 1.3 1.52l-6.674 5.72a1.5 1.5 0 0 1-1.952 0l-6.675-5.72a1 1 0 0 1 1.302-1.52L16 17.684l6.35-5.442z"/>
   </svg>
 )
 export const ChevronRightIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 32 32" fill={c.tertiary}>
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 32 32" fill={tertiary}>
     <path d="M12.32 22.27l5.442-6.35-5.442-6.348a1 1 0 1 1 1.518-1.302l5.722 6.675a1.5 1.5 0 0 1 0 1.952l-5.721 6.675a1 1 0 1 1-1.519-1.302z"/>
   </svg>
 )
 export const EditIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 18 18" fill={c.primary}>
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 18 18" fill={primary}>
     <path d="M2.52167 14.1271L3.87289 15.4783L5.18225 14.8964L16.4101 3.66853C16.9841 3.09453 16.9841 2.16389 16.4101 1.58988C15.8361 1.01588 14.9055 1.01588 14.3315 1.58988L13.2921 2.62921L14.6213 3.95838L13.8015 4.77818L12.4723 3.44902L3.1036 12.8178L2.52167 14.1271ZM13.5117 0.770077C14.5384 -0.256692 16.2032 -0.256692 17.2299 0.770077C18.2567 1.79685 18.2567 3.46157 17.2299 4.48834L5.964 15.7543C5.88854 15.8297 5.79982 15.8907 5.7023 15.934L1.22291 17.9248C0.998074 18.0248 0.741433 18.0248 0.516601 17.9248C0.07776 17.7298 -0.11988 17.2159 0.075161 16.7771L2.066 12.2977C2.10935 12.2002 2.17027 12.1115 2.24574 12.036L13.5117 0.770077Z"/>
   </svg>
 )
@@ -48,44 +49,44 @@ export const ImageIcon = () => (
   </svg>
 )
 export const MapIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 32 32" fill={c.primary}>
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 32 32" fill={primary}>
     <path d="M26 12c0-6.089-4.172-10-10-10S6 5.911 6 12c0 4.193 3.315 10.068 10 17.512C22.685 22.068 26 16.192 26 12zM4 12C4 4.777 9.095 0 16 0s12 4.777 12 12c0 4.905-3.649 11.288-10.89 19.266a1.5 1.5 0 0 1-2.118.103c-.053-.05-.053-.05-.103-.103C7.65 23.288 4 16.906 4 12zm12 4a5 5 0 1 1 0-10 5 5 0 0 1 0 10zm0-2a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
   </svg>
 )
 export const CheckIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 32 32" fill={c.tertiary}>
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 32 32" fill={tertiary}>
     <path d="M26.191 4.412a1 1 0 1 1 1.618 1.176l-16 22a1 1 0 0 1-1.516.12l-6-6a1 1 0 1 1 1.414-1.415l5.173 5.172L26.19 4.412z"/>
   </svg>
 )
-export const HomeFilledIcon = ({ color = c.primary }) => (
+export const HomeFilledIcon = ({ color = primary }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 32 32" fill={color}>
     <path d="M10 30v-5c0-3.552 2.448-6 6-6s6 2.448 6 6v5h6V13.568l-12-11.2-12 11.2V30h6zm2 2H2V15.435l-.318.296A1 1 0 0 1 .318 14.27L14.977.587a1.5 1.5 0 0 1 2.046 0l14.66 13.682a1 1 0 1 1-1.365 1.462L30 15.435V32H20v-7c0-2.448-1.552-4-4-4s-4 1.552-4 4v7z"/>
   </svg>
 )
-export const HomeOutlineIcon = ({ color = c.tertiary }) => (
+export const HomeOutlineIcon = ({ color = tertiary }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 32 32" fill={color}>
     <path d="M10 30v-5c0-3.552 2.448-6 6-6s6 2.448 6 6v5h6V13.568l-12-11.2-12 11.2V30h6zm2 2H2V15.435l-.318.296A1 1 0 0 1 .318 14.27L14.977.587a1.5 1.5 0 0 1 2.046 0l14.66 13.682a1 1 0 1 1-1.365 1.462L30 15.435V32H20v-7c0-2.448-1.552-4-4-4s-4 1.552-4 4v7z"/>
   </svg>
 )
-export const InboxIcon = ({ color = c.tertiary }) => (
+export const InboxIcon = ({ color = tertiary }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 32 32" fill={color}>
     <path d="M14.348 26a36.39 36.39 0 01-10.08 5.617 1.5 1.5 0 01-1.954-1.826c.705-2.437 1.217-4.582 1.537-6.43A10.977 10.977 0 010 15v-4C0 4.925 4.925 0 11 0h10c6.075 0 11 4.925 11 11v4c0 6.075-4.925 11-11 11h-6.652zm-.973-1.78l.274-.22H21a9 9 0 009-9v-4a9 9 0 00-9-9H11a9 9 0 00-9 9v4a8.982 8.982 0 003.54 7.155l.473.362-.092.588c-.286 1.82-.757 3.914-1.414 6.282a34.472 34.472 0 008.868-5.168zM8 10h8v2H8v-2zm0 4h16v2H8v-2z"/>
   </svg>
 )
 
-export const CalendarIcon = ({ color = c.tertiary }) => (
+export const CalendarIcon = ({ color = tertiary }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 32 32" fill={color}>
     <path d="M8 0a1 1 0 0 1 1 1v5H7V1a1 1 0 0 1 1-1zm16 0a1 1 0 0 1 1 1v5h-2V1a1 1 0 0 1 1-1zM2 12v17a1 1 0 0 0 1 1h26a1 1 0 0 0 1-1V12H2zm23-2v2h5V5a1 1 0 0 0-1-1h-2V2h2a3 3 0 0 1 3 3v24a3 3 0 0 1-3 3H3a3 3 0 0 1-3-3V5a3 3 0 0 1 3-3h2v2H3a1 1 0 0 0-1 1v5h23zm-4-8v2H11V2h10z"/>
   </svg>
 )
 
-export const RebookIcon = ({ color = c.tertiary }) => (
+export const RebookIcon = ({ color = tertiary }) => (
   <svg width="24" height="24" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path d="M8.70711 13L10.8536 15.1464C11.0488 15.3417 11.0488 15.6583 10.8536 15.8536C10.6583 16.0488 10.3417 16.0488 10.1464 15.8536L7.32322 13.0303C7.03033 12.7374 7.03033 12.2626 7.32322 11.9697L10.1464 9.14645C10.3417 8.95118 10.6583 8.95118 10.8536 9.14645C11.0488 9.34171 11.0488 9.65829 10.8536 9.85355L8.70711 12H11.5C13.433 12 15 10.433 15 8.5V7.5C15 5.567 13.433 4 11.5 4H11V3H11.5C13.9853 3 16 5.01472 16 7.5V8.5C16 10.9853 13.9853 13 11.5 13H8.70711ZM7.29289 3L5.14645 0.853553C4.95118 0.658291 4.95118 0.341709 5.14645 0.146447C5.34171 -0.0488155 5.65829 -0.0488155 5.85355 0.146447L8.67678 2.96967C8.96967 3.26256 8.96967 3.73744 8.67678 4.03033L5.85355 6.85355C5.65829 7.04882 5.34171 7.04882 5.14645 6.85355C4.95118 6.65829 4.95118 6.34171 5.14645 6.14645L7.29289 4H4.5C2.567 4 1 5.567 1 7.5V8.5C1 10.433 2.567 12 4.5 12H5V13H4.5C2.01472 13 0 10.9853 0 8.5V7.5C0 5.01472 2.01472 3 4.5 3H7.29289Z" fill={color}/>
   </svg>
 )
 
-export const MoreTabIcon = ({ color = c.tertiary }) => (
+export const MoreTabIcon = ({ color = tertiary }) => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
     <circle cx="5" cy="12" r="1.5" fill={color}/>
     <circle cx="12" cy="12" r="1.5" fill={color}/>
@@ -94,7 +95,7 @@ export const MoreTabIcon = ({ color = c.tertiary }) => (
 )
 
 export const PawIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 32 32" fill={c.primary}>
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 32 32" fill={primary}>
     <path d="M11.506 9.287c-1.52 0-2.755-1.603-2.755-3.581s1.233-3.581 2.755-3.581c1.521 0 2.755 1.603 2.755 3.581s-1.234 3.581-2.755 3.581Z"/>
     <path fillRule="evenodd" d="M22.463 30.549c-1.34 0-2.634-.483-3.711-1.4l-.358-.307C17.3 27.9 16.877 27.574 16 27.574c-.877 0-1.3.326-2.394 1.269l-.358.307c-1.288 1.098-2.886 1.571-4.5 1.345-1.679-.238-3.152-1.2-4.15-2.709-1.943-2.94-1.403-7.137 1.204-9.354l7.446-6.336c1.619-1.379 3.885-1.379 5.504 0l7.446 6.336c2.607 2.218 3.147 6.414 1.204 9.354-.997 1.509-2.471 2.471-4.149 2.709a5.86 5.86 0 0 1-.79.054ZM16 25.074c1.851 0 2.858.868 4.025 1.874l.346.297c.735.626 1.638.901 2.53.773.961-.136 1.818-.709 2.415-1.612 1.271-1.921.939-4.645-.737-6.071l-7.446-6.336c-.689-.586-1.576-.586-2.266 0l-7.446 6.336c-1.677 1.427-2.008 4.15-.737 6.071.598.903 1.455 1.477 2.415 1.612.896.127 1.793-.147 2.53-.773l.346-.297c1.167-1.006 2.174-1.874 4.025-1.874Z" clipRule="evenodd"/>
     <path d="M17.74 5.706c0 1.978 1.233 3.581 2.754 3.581s2.755-1.603 2.755-3.581-1.234-3.581-2.755-3.581c-1.522 0-2.755 1.603-2.755 3.581Zm9.733 8.718c-1.38 0-2.5-1.357-2.5-3.03 0-1.673 1.12-3.03 2.5-3.03 1.381 0 2.5 1.357 2.5 3.03 0 1.673-1.119 3.03-2.5 3.03ZM2.02 11.394c0 1.673 1.12 3.03 2.5 3.03 1.381 0 2.5-1.357 2.5-3.03 0-1.673-1.119-3.03-2.5-3.03-1.38 0-2.5 1.357-2.5 3.03Z"/>
@@ -121,8 +122,8 @@ export const CancelIcon = ({ color = 'currentColor' }) => (
 
 export const MoreIcon = ({ size = 24 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <circle cx="12" cy="5" r="1.5" fill={c.primary}/>
-    <circle cx="12" cy="12" r="1.5" fill={c.primary}/>
-    <circle cx="12" cy="19" r="1.5" fill={c.primary}/>
+    <circle cx="12" cy="5" r="1.5" fill={primary}/>
+    <circle cx="12" cy="12" r="1.5" fill={primary}/>
+    <circle cx="12" cy="19" r="1.5" fill={primary}/>
   </svg>
 )

@@ -191,8 +191,8 @@ export default function AgendaView({agenda, pets, onAdd, allEnded, upcomingRef, 
                         const isUpdated        = !isAdded && !changedToTime && !unitChangedFrom && updatedUnitIds?.has(occ.unit.id)
                         const originalTime     = changedToTime && occ.parentUnit ? fmtTime(occ.parentUnit.startTime) : timeLabel
                         const unitOriginalTime = unitChangedFrom ? fmtTime(unitChangedFrom) : timeLabel
-                        const flagBorder       = isAdded ? R.brand : (changedToTime || unitChangedFrom || isUpdated) ? R.blue : isRemoved ? R.red : '#D7DCE0'
-                        const headingColor     = isAdded ? R.brand : isRemoved ? R.red : (changedToTime || unitChangedFrom || isUpdated) ? R.blue : R.navy
+                        const flagBorder       = isAdded ? R.successBorder : isRemoved ? R.errorBorder : (changedToTime || unitChangedFrom || isUpdated) ? R.highlight : R.cardBorder
+                        const headingColor     = isAdded ? R.success : isRemoved ? R.red : (changedToTime || unitChangedFrom || isUpdated) ? R.blue : R.navy
                         const headingText      = isAdded
                           ? `${timeLabel} · Added`
                           : isRemoved
@@ -205,7 +205,7 @@ export default function AgendaView({agenda, pets, onAdd, allEnded, upcomingRef, 
                                   ? `${timeLabel} · Updated`
                                   : timeLabel
                         return (
-                          <div key={`${occ.key}-${occ.nightIndex || 0}`} style={{border:`2px solid ${flagBorder}`,borderRadius:8,padding:"0 16px",background:isRemoved?'#FDF2F2':R.white,marginBottom:8}}>
+                          <div key={`${occ.key}-${occ.nightIndex || 0}`} style={{border:`2px solid ${flagBorder}`,borderRadius:8,padding:"0 16px",background:isRemoved?R.redLight:R.white,marginBottom:8}}>
                             <div style={{display:"flex",alignItems:"center",gap:8,paddingTop:16,paddingBottom:isOccToday || showReviewBtn ? 8 : 16}}>
                               <div style={{flex:1}}>
                                 <p style={{...textStyles.text200Semibold,color:headingColor,margin:"0 0 4px"}}>{headingText}</p>

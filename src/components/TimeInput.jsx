@@ -84,9 +84,9 @@ export default function TimeInput({ value, onChange, placeholder }) {
         onClick={handleOpen}
         style={{
           width: '100%', padding: '12px 8px 12px 12px',
-          border: `2px solid ${open ? colors.link : colors.borderInteractive}`,
+          border: `2px solid ${open ? colors.link.primary : colors.border.primary}`,
           borderRadius: 4, fontSize: 16, fontFamily,
-          color: displayValue ? colors.primary : colors.disabledText,
+          color: displayValue ? colors.text.primary : colors.text.disabled,
           background: '#fff', cursor: 'pointer', textAlign: 'left',
           display: 'flex', alignItems: 'center', minHeight: 48, boxSizing: 'border-box',
         }}
@@ -102,7 +102,7 @@ export default function TimeInput({ value, onChange, placeholder }) {
           ...dropPos,
           background: '#fff', borderRadius: 8,
           boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
-          border: `1.5px solid ${colors.border}`,
+          border: `1.5px solid ${colors.border.secondary}`,
         }}>
           <div ref={listRef} className="hide-scrollbar" style={{ maxHeight: 224, overflowY: 'auto' }}>
             {ALL_TIMES.map(time => {
@@ -122,7 +122,7 @@ export default function TimeInput({ value, onChange, placeholder }) {
                   <span style={{
                     fontFamily, fontSize: 14,
                     fontWeight: selected ? 600 : 400,
-                    color: selected ? colors.link : colors.primary,
+                    color: selected ? colors.link.primary : colors.text.primary,
                   }}>
                     {time}
                   </span>

@@ -24,12 +24,12 @@ export default function ActionSheet({ visible, type, label, sublabel, petImages,
       <div onClick={onClose} style={{ flex: 1 }} />
 
       <div style={{
-        background: colors.white, borderRadius: '8px 8px 0 0',
+        background: colors.background.primary, borderRadius: '8px 8px 0 0',
         boxShadow: shadows.medium, padding: '0 16px 24px',
         animation: 'slideUp 0.25s ease-out',
       }}>
         <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 8, marginBottom: 24 }}>
-          <div style={{ width: 36, height: 5, borderRadius: 35, background: colors.borderInteractive }} />
+          <div style={{ width: 36, height: 5, borderRadius: 35, background: colors.border.primary }} />
         </div>
 
         <Row

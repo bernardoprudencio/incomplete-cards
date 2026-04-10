@@ -2,7 +2,7 @@ import { colors } from '../tokens'
 
 const DRAG_HANDLE = (
   <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 8, paddingBottom: 16 }}>
-    <div style={{ width: 36, height: 5, borderRadius: 35, background: colors.borderInteractive }} />
+    <div style={{ width: 36, height: 5, borderRadius: 35, background: colors.border.primary }} />
   </div>
 )
 

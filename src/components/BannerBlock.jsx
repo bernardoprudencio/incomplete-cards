@@ -5,16 +5,16 @@ import { ClockIcon } from '../assets/icons'
 export default function BannerBlock({ text, link, onClick }) {
   return (
     <div style={{
-      background: colors.yellow100, borderRadius: 4, padding: 16,
+      background: colors.background.accent, borderRadius: 4, padding: 16,
       display: 'flex', gap: 12, alignItems: 'flex-start', marginBottom: 12,
     }}>
       <div style={{ flexShrink: 0 }}><ClockIcon /></div>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <p style={{ ...textStyles.paragraph100, color: colors.primary, margin: 0, whiteSpace: 'pre-line' }}>{text}</p>
+        <p style={{ ...textStyles.paragraph100, color: colors.text.primary, margin: 0, whiteSpace: 'pre-line' }}>{text}</p>
         {link && (
           <p onClick={onClick} style={{
             fontFamily: typography.fontFamily, fontWeight: 600, fontSize: 14,
-            color: colors.link, textDecoration: 'underline', margin: '8px 0 0', cursor: 'pointer',
+            color: colors.link.primary, textDecoration: 'underline', margin: '8px 0 0', cursor: 'pointer',
           }}>{link}</p>
         )}
       </div>

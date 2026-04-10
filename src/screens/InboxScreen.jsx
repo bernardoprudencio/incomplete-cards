@@ -40,17 +40,17 @@ export default function InboxScreen() {
   const filtered = applyFilter(INBOX_THREADS, activeFilter)
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: colors.white }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: colors.background.primary }}>
 
       {/* ── Header (no bottom border — border lives below chips) ── */}
       <div style={{
         padding: '24px 16px 12px',
         flexShrink: 0,
-        background: colors.white,
+        background: colors.background.primary,
       }}>
         <h1 style={{
           ...textStyles.display400,
-          color: colors.primary,
+          color: colors.text.primary,
           margin: 0,
         }}>Inbox</h1>
       </div>
@@ -59,7 +59,7 @@ export default function InboxScreen() {
       <div className="hide-scrollbar" style={{
         display: 'flex',
         alignItems: 'center',
-        background: colors.white,
+        background: colors.background.primary,
         flexShrink: 0,
         overflowX: 'auto',
       }}>
@@ -69,7 +69,7 @@ export default function InboxScreen() {
           alignItems: 'center',
           gap: spacing.sm,
           padding: `0 ${spacing.lg}px`,
-          borderRight: `1px solid ${colors.border}`,
+          borderRight: `1px solid ${colors.border.secondary}`,
           flexShrink: 0,
         }}>
           {FILTER_LEFT.map(f => (
@@ -97,14 +97,14 @@ export default function InboxScreen() {
         alignItems: 'center',
         gap: spacing.sm,
         padding: `${spacing.md}px ${spacing.lg}px`,
-        borderBottom: `1px solid ${colors.border}`,
-        background: colors.white,
+        borderBottom: `1px solid ${colors.border.secondary}`,
+        background: colors.background.primary,
         flexShrink: 0,
       }}>
         <DropdownIcon />
         <span style={{
           ...textStyles.heading100,
-          color: colors.secondary,
+          color: colors.text.secondary,
         }}>Sorted by recent activity</span>
       </div>
 
@@ -120,7 +120,7 @@ export default function InboxScreen() {
           }}>
             <p style={{
               ...textStyles.text100,
-              color: colors.tertiary,
+              color: colors.text.tertiary,
               textAlign: 'center',
               margin: 0,
             }}>No conversations</p>

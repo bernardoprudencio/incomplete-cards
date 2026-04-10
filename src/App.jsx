@@ -21,7 +21,7 @@ function SlideOverlay({ children, zIndex = 10 }) {
   return (
     <div style={{
       position: 'absolute', inset: 0, zIndex,
-      background: colors.white,
+      background: colors.background.primary,
       transition: `transform ${TRANSITION_MS}ms ease, opacity ${TRANSITION_MS}ms ease`,
       transform: active ? 'translateX(0)' : 'translateX(100%)',
       opacity: active ? 1 : 0,

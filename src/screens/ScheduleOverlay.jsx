@@ -26,15 +26,15 @@ export default function ScheduleOverlay() {
   const unitLabel = UNIT_LABELS[units[0]?.serviceId] ?? 'service'
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: colors.white }}>
-      <div style={{ borderBottom: `1px solid ${colors.border}`, boxShadow: shadows.headerShadow, padding: '12px 16px 0', flexShrink: 0 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: colors.background.primary }}>
+      <div style={{ borderBottom: `1px solid ${colors.border.secondary}`, boxShadow: shadows.headerShadow, padding: '12px 16px 0', flexShrink: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', minHeight: 62, padding: '8px 0' }}>
           <div onClick={() => navigate(-1)} style={{ display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer', flexShrink: 0 }}>
             <BackIcon />
           </div>
           <div style={{ flex: 1, marginLeft: 8, minWidth: 0 }}>
-            <p style={{ ...textStyles.text200Semibold, color: colors.primary, margin: 0 }}>Manage schedule</p>
-            <p style={{ ...textStyles.text100, color: colors.primary, margin: 0 }}>{ctx?.ownerName}</p>
+            <p style={{ ...textStyles.text200Semibold, color: colors.text.primary, margin: 0 }}>Manage schedule</p>
+            <p style={{ ...textStyles.text100, color: colors.text.primary, margin: 0 }}>{ctx?.ownerName}</p>
           </div>
         </div>
         <div style={{ display: 'flex', gap: 8, paddingTop: 12, paddingBottom: 14 }}>

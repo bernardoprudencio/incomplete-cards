@@ -21,16 +21,16 @@ export default function Row({ label, sublabel, sublabel2, leftItem, rightItem, o
         {leftItem && <div style={{ flexShrink: 0 }}>{leftItem}</div>}
         <div style={{ display: 'flex', flexDirection: 'column', gap: sublabel ? 4 : 0, flex: 1, minWidth: 0 }}>
           <p style={{
-            ...textStyles.text200Semibold, color: colors.primary, margin: 0,
+            ...textStyles.text200Semibold, color: colors.text.primary, margin: 0,
           }}>{label}</p>
           {sublabel && (
             <p style={{
-              ...textStyles.text100, color: colors.tertiary, margin: 0,
+              ...textStyles.text100, color: colors.text.tertiary, margin: 0,
             }}>{sublabel}</p>
           )}
           {sublabel2 && (
             <p style={{
-              ...textStyles.text100, color: colors.tertiary, margin: 0,
+              ...textStyles.text100, color: colors.text.tertiary, margin: 0,
             }}>{sublabel2}</p>
           )}
         </div>

@@ -94,9 +94,9 @@ export default function CalInput({ value, onChange, minDate, maxDate, placeholde
         onClick={handleOpen}
         style={{
           width: '100%', padding: '12px 8px 12px 12px',
-          border: `2px solid ${open ? colors.link : colors.borderInteractive}`,
+          border: `2px solid ${open ? colors.link.primary : colors.border.primary}`,
           borderRadius: 4, fontSize: 16, fontFamily,
-          color: sel ? colors.primary : colors.disabledText,
+          color: sel ? colors.text.primary : colors.text.disabled,
           background: '#fff', cursor: 'pointer', textAlign: 'left',
           display: 'flex', alignItems: 'center', minHeight: 48, boxSizing: 'border-box',
         }}
@@ -111,14 +111,14 @@ export default function CalInput({ value, onChange, minDate, maxDate, placeholde
             ...dropPos,
             background: '#fff', borderRadius: 8,
             boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
-            border: `1.5px solid ${colors.border}`,
+            border: `1.5px solid ${colors.border.secondary}`,
             padding: '14px 12px',
           }}
         >
           {/* Month navigation */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
             <button onClick={prevM} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 6px', borderRadius: 6, display: 'flex', alignItems: 'center', transform: 'rotate(180deg)' }}><ChevronRightIcon /></button>
-            <span style={{ fontFamily, fontWeight: 600, fontSize: 14, color: colors.primary }}>{MONTHS[viewMonth]} {viewYear}</span>
+            <span style={{ fontFamily, fontWeight: 600, fontSize: 14, color: colors.text.primary }}>{MONTHS[viewMonth]} {viewYear}</span>
             <button onClick={nextM} style={{ background: 'none', border: 'none', cursor: isAtMaxMonth ? 'default' : 'pointer', padding: '4px 6px', borderRadius: 6, display: 'flex', alignItems: 'center', opacity: isAtMaxMonth ? 0.3 : 1 }}><ChevronRightIcon /></button>
           </div>
 
@@ -126,7 +126,7 @@ export default function CalInput({ value, onChange, minDate, maxDate, placeholde
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 6, paddingBottom: 8 }}>
             {DAY_LETTERS.map((l, i) => (
               <div key={i} style={{ height: 26, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <span style={{ fontFamily, fontSize: 14, fontWeight: 400, color: colors.tertiary, lineHeight: 1 }}>{l}</span>
+                <span style={{ fontFamily, fontSize: 14, fontWeight: 400, color: colors.text.tertiary, lineHeight: 1 }}>{l}</span>
               </div>
             ))}
           </div>
@@ -155,7 +155,7 @@ export default function CalInput({ value, onChange, minDate, maxDate, placeholde
                     position: 'relative',
                     borderRadius: 8,
                     cursor: dis ? 'not-allowed' : 'pointer',
-                    background: isSel ? colors.link : hover ? '#EBF1FB' : 'transparent',
+                    background: isSel ? colors.link.primary : hover ? '#EBF1FB' : 'transparent',
                     opacity: dis ? 0.4 : 1,
                     transition: 'background 0.1s',
                     userSelect: 'none',
@@ -164,7 +164,7 @@ export default function CalInput({ value, onChange, minDate, maxDate, placeholde
                   <span style={{
                     fontFamily, fontSize: 14, lineHeight: 1,
                     fontWeight: isSel ? 600 : tod ? 600 : 400,
-                    color: dis ? colors.disabledText : isSel ? '#fff' : tod ? colors.link : colors.primary,
+                    color: dis ? colors.text.disabled : isSel ? '#fff' : tod ? colors.link.primary : colors.text.primary,
                   }}>
                     {day}
                   </span>
@@ -172,8 +172,8 @@ export default function CalInput({ value, onChange, minDate, maxDate, placeholde
                     <div style={{
                       position: 'absolute', bottom: 4,
                       width: 6, height: 6, borderRadius: 3,
-                      background: isSel ? colors.white : colors.success,
-                      border: `1px solid ${colors.white}`,
+                      background: isSel ? colors.background.primary : colors.text.success,
+                      border: `1px solid ${colors.background.primary}`,
                     }} />
                   )}
                 </div>

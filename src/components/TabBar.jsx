@@ -30,12 +30,12 @@ export default function TabBar() {
 
   return (
     <div style={{
-      display: 'flex', borderTop: `1px solid ${colors.border}`,
-      background: colors.white, flexShrink: 0,
+      display: 'flex', borderTop: `1px solid ${colors.border.secondary}`,
+      background: colors.background.primary, flexShrink: 0,
     }}>
       {TABS.map(({ id, label, Icon }) => {
         const isActive = activeTab === id
-        const iconColor = isActive ? colors.primary : colors.tertiary
+        const iconColor = isActive ? colors.text.primary : colors.text.tertiary
         const path = TAB_PATHS[id]
         return (
           <div

@@ -20,12 +20,12 @@ export default function ReviewSheet({ visible, card, onClose, onComplete, onCanc
       <div onClick={onClose} style={{ flex: 1 }} />
 
       <div style={{
-        background: colors.white, borderRadius: '8px 8px 0 0',
+        background: colors.background.primary, borderRadius: '8px 8px 0 0',
         boxShadow: shadows.medium, padding: '0 16px 24px',
         animation: 'slideUp 0.25s ease-out',
       }}>
         <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 8, marginBottom: 24 }}>
-          <div style={{ width: 36, height: 5, borderRadius: 35, background: colors.borderInteractive }} />
+          <div style={{ width: 36, height: 5, borderRadius: 35, background: colors.border.primary }} />
         </div>
 
         <Row
@@ -35,7 +35,7 @@ export default function ReviewSheet({ visible, card, onClose, onComplete, onCanc
           firstRow
         />
 
-        <p style={{ fontFamily: typography.fontFamily, fontWeight: 600, fontSize: 16, color: colors.primary, margin: '0 0 12px' }}>
+        <p style={{ fontFamily: typography.fontFamily, fontWeight: 600, fontSize: 16, color: colors.text.primary, margin: '0 0 12px' }}>
           Have you completed the walk?
         </p>
 
@@ -52,7 +52,7 @@ export default function ReviewSheet({ visible, card, onClose, onComplete, onCanc
           ))}
         </div>
 
-        <p style={{ ...textStyles.paragraph100, color: colors.tertiary, margin: '0 0 20px' }}>
+        <p style={{ ...textStyles.paragraph100, color: colors.text.tertiary, margin: '0 0 20px' }}>
           {answer === 'yes'
             ? "There's no Rover Card, so your client won't see updates about their pet. We'll let them know the service is complete."
             : `A refund of ${card.cost} will automatically be processed.`}

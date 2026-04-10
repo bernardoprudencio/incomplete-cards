@@ -16,13 +16,13 @@ const TrashIcon = () => (
 )
 
 const CloseSmIcon = ({ hover }) => (
-  <svg width="16" height="16" viewBox="0 0 32 32" fill={hover ? colors.primary : colors.secondary}>
+  <svg width="16" height="16" viewBox="0 0 32 32" fill={hover ? colors.text.primary : colors.text.secondary}>
     <path d="M17.414 16l7.293-7.293a1 1 0 0 0-1.414-1.414L16 14.586 8.707 7.293a1 1 0 0 0-1.414 1.414L14.586 16l-7.293 7.293a1 1 0 0 0 1.414 1.414L16 17.414l7.293 7.293a1 1 0 0 0 1.414-1.414L17.414 16z"/>
   </svg>
 )
 
 const CheckIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 32 32" fill={colors.link} style={{ flexShrink: 0 }}>
+  <svg width="16" height="16" viewBox="0 0 32 32" fill={colors.link.primary} style={{ flexShrink: 0 }}>
     <path d="M26.191 4.412a1 1 0 1 1 1.618 1.176l-16 22a1 1 0 0 1-1.516.12l-6-6a1 1 0 1 1 1.414-1.415l5.173 5.172L26.19 4.412z"/>
   </svg>
 )
@@ -186,8 +186,8 @@ function TimeDropdown({ times, selectedTime, onSelect }) {
     <div
       style={{
         marginTop: 8,
-        background: colors.white,
-        border: `1px solid ${colors.border}`,
+        background: colors.background.primary,
+        border: `1px solid ${colors.border.secondary}`,
         borderRadius: radius.primary,
         boxShadow: shadows.medium,
         overflow: 'hidden',
@@ -196,7 +196,7 @@ function TimeDropdown({ times, selectedTime, onSelect }) {
     >
       <div ref={listRef} className="hide-scrollbar" style={{ maxHeight: 224, overflowY: 'auto' }}>
         {times.length === 0 && (
-          <p style={{ ...tx(14, 400, colors.tertiary), padding: '12px 16px', margin: 0 }}>
+          <p style={{ ...tx(14, 400, colors.text.tertiary), padding: '12px 16px', margin: 0 }}>
             No times available
           </p>
         )}
@@ -213,11 +213,11 @@ function TimeDropdown({ times, selectedTime, onSelect }) {
               style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 padding: '10px 16px', cursor: 'pointer',
-                background: selected ? '#EBF1FB' : hovering ? colors.bgSecondary : 'transparent',
+                background: selected ? '#EBF1FB' : hovering ? colors.background.secondary : 'transparent',
                 transition: 'background 0.08s',
               }}
             >
-              <span style={{ ...tx(14, selected ? 600 : 400, selected ? colors.link : colors.primary) }}>
+              <span style={{ ...tx(14, selected ? 600 : 400, selected ? colors.link.primary : colors.text.primary) }}>
                 {time}
               </span>
               {selected && <CheckIcon />}
@@ -262,10 +262,10 @@ function DayCard({ dayData, activeSlotId, onOpenDropdown, onRemoveDay, onRemoveS
   })() : null
 
   return (
-    <div data-day-id={dayData.id} style={{ background: colors.bgSecondary, borderRadius: radius.primary, padding: 16 }}>
+    <div data-day-id={dayData.id} style={{ background: colors.background.secondary, borderRadius: radius.primary, padding: 16 }}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-        <p style={{ ...tx(16, 600, colors.primary), flex: 1, lineHeight: 1.5, margin: 0 }}>
+        <p style={{ ...tx(16, 600, colors.text.primary), flex: 1, lineHeight: 1.5, margin: 0 }}>
           {dayData.day}, {dayData.date}
         </p>
         <Button
@@ -311,13 +311,13 @@ function DayCard({ dayData, activeSlotId, onOpenDropdown, onRemoveDay, onRemoveS
 // ── Week group ─────────────────────────────────────────────────────────────────
 function WeekGroup({ week, openDropdown, onOpenDropdown, onRemoveDay, onRemoveSlot, onSelectTime, onResetWeek }) {
   return (
-    <div style={{ padding: '24px 16px', borderBottom: `1px solid ${colors.border}` }}>
-      <p style={{ ...tx(14, 400, colors.secondary), lineHeight: 1.25, marginBottom: 8 }}>
+    <div style={{ padding: '24px 16px', borderBottom: `1px solid ${colors.border.secondary}` }}>
+      <p style={{ ...tx(14, 400, colors.text.secondary), lineHeight: 1.25, marginBottom: 8 }}>
         Week of {week.label}
       </p>
       {week.days.length === 0 ? (
-        <div style={{ background: colors.bgSecondary, borderRadius: radius.primary, padding: 16 }}>
-          <p style={{ ...tx(16, 600, colors.primary), lineHeight: 1.5, margin: '0 0 8px' }}>
+        <div style={{ background: colors.background.secondary, borderRadius: radius.primary, padding: 16 }}>
+          <p style={{ ...tx(16, 600, colors.text.primary), lineHeight: 1.5, margin: '0 0 8px' }}>
             No walks this week
           </p>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0 8px' }}>
@@ -355,7 +355,7 @@ function WeekGroup({ week, openDropdown, onOpenDropdown, onRemoveDay, onRemoveSl
 
 // ── Read-only sidebar cards ────────────────────────────────────────────────────
 const WhiteCard = ({ children }) => (
-  <div style={{ background: colors.white, borderRadius: radius.primary, padding: '24px 16px' }}>
+  <div style={{ background: colors.background.primary, borderRadius: radius.primary, padding: '24px 16px' }}>
     {children}
   </div>
 )
@@ -363,7 +363,7 @@ const WhiteCard = ({ children }) => (
 const TimeGrid = ({ times }) => (
   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
     {times.map((time, i) => (
-      <p key={i} style={{ ...tx(14, 400, colors.primary), margin: 0 }}>{time}</p>
+      <p key={i} style={{ ...tx(14, 400, colors.text.primary), margin: 0 }}>{time}</p>
     ))}
   </div>
 )
@@ -373,9 +373,9 @@ const UserInfoCard = ({ name, image, service, petNames }) => (
     <div style={{ display: 'flex', alignItems: 'center' }}>
       <PetAvatar size={64} images={[image]} />
       <div style={{ flex: 1, minWidth: 0, overflow: 'hidden', paddingLeft: 8 }}>
-        <p style={{ ...tx(20, 600, colors.primary), lineHeight: 1.25 }}>{name}</p>
-        <p style={{ ...tx(14, 400, colors.secondary), lineHeight: 1.5 }}>{service}</p>
-        <p style={{ ...tx(14, 400, colors.secondary), lineHeight: 1.5 }}>{petNames}</p>
+        <p style={{ ...tx(20, 600, colors.text.primary), lineHeight: 1.25 }}>{name}</p>
+        <p style={{ ...tx(14, 400, colors.text.secondary), lineHeight: 1.5 }}>{service}</p>
+        <p style={{ ...tx(14, 400, colors.text.secondary), lineHeight: 1.5 }}>{petNames}</p>
       </div>
     </div>
   </WhiteCard>
@@ -383,15 +383,15 @@ const UserInfoCard = ({ name, image, service, petNames }) => (
 
 const TemplateCard = ({ owner }) => (
   <WhiteCard>
-    <p style={{ ...tx(20, 600, colors.primary), lineHeight: 1.25, marginBottom: 16 }}>Weekly schedule template</p>
-    <p style={{ ...tx(14, 400, colors.secondary), lineHeight: 1.25, marginBottom: 8 }}>Repeats on</p>
+    <p style={{ ...tx(20, 600, colors.text.primary), lineHeight: 1.25, marginBottom: 16 }}>Weekly schedule template</p>
+    <p style={{ ...tx(14, 400, colors.text.secondary), lineHeight: 1.25, marginBottom: 8 }}>Repeats on</p>
     {owner.template.map(({ day, time }) => (
       <div key={day} style={{ paddingBottom: 24 }}>
-        <p style={{ ...tx(16, 600, colors.primary), lineHeight: 1.5, marginBottom: 8 }}>{day}</p>
+        <p style={{ ...tx(16, 600, colors.text.primary), lineHeight: 1.5, marginBottom: 8 }}>{day}</p>
         <TimeGrid times={[time]} />
       </div>
     ))}
-    <button style={{ ...tx(14, 600, colors.link), background: 'none', border: 'none', padding: '8px 16px', cursor: 'pointer', width: '100%', textAlign: 'center', lineHeight: 1.25 }}>
+    <button style={{ ...tx(14, 600, colors.link.primary), background: 'none', border: 'none', padding: '8px 16px', cursor: 'pointer', width: '100%', textAlign: 'center', lineHeight: 1.25 }}>
       Edit weekly schedule template
     </button>
   </WhiteCard>
@@ -407,15 +407,15 @@ const CurrentWeekCard = ({ owner }) => {
   const weekLabel = `${SHORT_MONTHS[monday.getMonth()]} ${monday.getDate()}`
   return (
     <WhiteCard>
-      <p style={{ ...tx(20, 600, colors.primary), lineHeight: 1.25, marginBottom: 4 }}>Happening this week</p>
-      <p style={{ ...tx(14, 400, colors.secondary), lineHeight: 1.25, marginBottom: 16 }}>Week of {weekLabel}</p>
+      <p style={{ ...tx(20, 600, colors.text.primary), lineHeight: 1.25, marginBottom: 4 }}>Happening this week</p>
+      <p style={{ ...tx(14, 400, colors.text.secondary), lineHeight: 1.25, marginBottom: 16 }}>Week of {weekLabel}</p>
       {currentWeekDays.map(({ day, date, times }) => (
         <div key={day} style={{ paddingBottom: 24 }}>
-          <p style={{ ...tx(16, 600, colors.primary), lineHeight: 1.5, marginBottom: 8 }}>{day}, {date}</p>
+          <p style={{ ...tx(16, 600, colors.text.primary), lineHeight: 1.5, marginBottom: 8 }}>{day}, {date}</p>
           <TimeGrid times={times} />
         </div>
       ))}
-      <button style={{ ...tx(14, 600, colors.link), background: 'none', border: 'none', padding: '8px 16px', cursor: 'pointer', width: '100%', textAlign: 'center', lineHeight: 1.25 }}>
+      <button style={{ ...tx(14, 600, colors.link.primary), background: 'none', border: 'none', padding: '8px 16px', cursor: 'pointer', width: '100%', textAlign: 'center', lineHeight: 1.25 }}>
         Manage current week
       </button>
     </WhiteCard>
@@ -428,7 +428,7 @@ function ChangeRows({ changes }) {
     <div className="hide-scrollbar" style={{ maxHeight: 240, overflowY: 'auto', padding: '24px 0' }}>
       {changes.map((change, i) => (
         <div key={i} style={{ paddingBottom: i < changes.length - 1 ? 12 : 0 }}>
-          <p style={{ ...tx(16, 600, colors.primary), marginBottom: 4, lineHeight: 1.5 }}>
+          <p style={{ ...tx(16, 600, colors.text.primary), marginBottom: 4, lineHeight: 1.5 }}>
             {change.day}, {change.date}
           </p>
           {change.removed.map((t, j) => (
@@ -465,12 +465,12 @@ function ErrorBanner({ emptyDays, onDismiss }) {
       }}>
         <CautionIcon />
         <div style={{ flex: 1, minWidth: 0 }}>
-          <p style={{ ...tx(14, 600, colors.primary), lineHeight: 1.25, marginBottom: 4 }}>
+          <p style={{ ...tx(14, 600, colors.text.primary), lineHeight: 1.25, marginBottom: 4 }}>
             The following days have no time scheduled:
           </p>
           <ul style={{ margin: 0, paddingLeft: 21 }}>
             {emptyDays.map((d, i) => (
-              <li key={i} style={{ ...tx(14, 400, colors.primary), lineHeight: 1.5 }}>
+              <li key={i} style={{ ...tx(14, 400, colors.text.primary), lineHeight: 1.5 }}>
                 {d.day}, {d.date}
               </li>
             ))}
@@ -503,15 +503,15 @@ function CalendarDay({ date, isBooked, onSelect }) {
         transition: 'background 0.1s', userSelect: 'none',
       }}
     >
-      <span style={{ ...tx(14, 400, colors.primary), lineHeight: 1 }}>
+      <span style={{ ...tx(14, 400, colors.text.primary), lineHeight: 1 }}>
         {date.getDate()}
       </span>
       {isBooked && (
         <div style={{
           position: 'absolute', bottom: 4,
           width: 6, height: 6, borderRadius: 3,
-          background: colors.success,
-          border: `1px solid ${colors.white}`,
+          background: colors.text.success,
+          border: `1px solid ${colors.background.primary}`,
         }} />
       )}
     </div>
@@ -527,7 +527,7 @@ function CalendarGrid({ disabledKeys, bookedKeys, onSelect }) {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 6, paddingBottom: 8 }}>
         {DAY_LETTERS.map((l, i) => (
           <div key={i} style={{ height: 26, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <span style={{ ...tx(14, 400, colors.tertiary), lineHeight: 1 }}>{l}</span>
+            <span style={{ ...tx(14, 400, colors.text.tertiary), lineHeight: 1 }}>{l}</span>
           </div>
         ))}
       </div>
@@ -539,7 +539,7 @@ function CalendarGrid({ disabledKeys, bookedKeys, onSelect }) {
         return (
           <React.Fragment key={wi}>
             {showHeader && (
-              <p style={{ ...tx(16, 600, colors.primary), lineHeight: 1.5, margin: `${wi > 0 ? 16 : 0}px 0 8px` }}>
+              <p style={{ ...tx(16, 600, colors.text.primary), lineHeight: 1.5, margin: `${wi > 0 ? 16 : 0}px 0 8px` }}>
                 {MONTHS_FULL[mondayMonth]} 2026
               </p>
             )}
@@ -568,11 +568,11 @@ function AddDaySheet({ onSelect, onClose, disabledKeys, bookedKeys }) {
       onClick={onClose}
     >
       <div
-        style={{ background: colors.white, borderRadius: '16px 16px 0 0', boxShadow: shadows.medium, padding: '32px 16px 24px', width: '100%', position: 'relative' }}
+        style={{ background: colors.background.primary, borderRadius: '16px 16px 0 0', boxShadow: shadows.medium, padding: '32px 16px 24px', width: '100%', position: 'relative' }}
         onClick={e => e.stopPropagation()}
       >
         <div style={{ position: 'absolute', top: 8, left: '50%', transform: 'translateX(-50%)', width: 36, height: 5, borderRadius: 35, background: '#C9CFD4' }} />
-        <p style={{ ...tx(20, 600, colors.primary), lineHeight: 1.25, marginBottom: 20 }}>Add a day</p>
+        <p style={{ ...tx(20, 600, colors.text.primary), lineHeight: 1.25, marginBottom: 20 }}>Add a day</p>
         <CalendarGrid disabledKeys={disabledKeys} bookedKeys={bookedKeys} onSelect={onSelect} />
         <div style={{ paddingTop: 24 }}>
           <Button variant="default" size="default" fullWidth onClick={onClose}>Close</Button>
@@ -590,10 +590,10 @@ function AddDayModal({ onSelect, onClose, disabledKeys, bookedKeys }) {
       onClick={onClose}
     >
       <div
-        style={{ background: colors.white, borderRadius: 8, boxShadow: '0px 4px 16px 0px rgba(0,0,0,0.12)', padding: 24, width: 440, maxWidth: 'calc(100vw - 48px)' }}
+        style={{ background: colors.background.primary, borderRadius: 8, boxShadow: '0px 4px 16px 0px rgba(0,0,0,0.12)', padding: 24, width: 440, maxWidth: 'calc(100vw - 48px)' }}
         onClick={e => e.stopPropagation()}
       >
-        <p style={{ ...tx(20, 600, colors.primary), lineHeight: 1.25, marginBottom: 20 }}>Add a day</p>
+        <p style={{ ...tx(20, 600, colors.text.primary), lineHeight: 1.25, marginBottom: 20 }}>Add a day</p>
         <CalendarGrid disabledKeys={disabledKeys} bookedKeys={bookedKeys} onSelect={onSelect} />
         <div style={{ paddingTop: 24 }}>
           <Button variant="flat" size="default" fullWidth onClick={onClose}>Close</Button>
@@ -617,7 +617,7 @@ function ConfirmSheet({ changes, ownerName, onConfirm, onClose }) {
     >
       <div
         style={{
-          background: colors.white,
+          background: colors.background.primary,
           borderRadius: '16px 16px 0 0',
           boxShadow: shadows.medium,
           padding: '32px 16px 24px',
@@ -632,10 +632,10 @@ function ConfirmSheet({ changes, ownerName, onConfirm, onClose }) {
           width: 36, height: 5, borderRadius: 35, background: '#C9CFD4',
         }} />
 
-        <p style={{ ...tx(20, 600, colors.primary), lineHeight: 1.25, marginBottom: 8 }}>
+        <p style={{ ...tx(20, 600, colors.text.primary), lineHeight: 1.25, marginBottom: 8 }}>
           Confirm changes
         </p>
-        <p style={{ ...tx(14, 400, colors.primary), lineHeight: 1.5, marginBottom: 0 }}>
+        <p style={{ ...tx(14, 400, colors.text.primary), lineHeight: 1.5, marginBottom: 0 }}>
           Review your changes below. We'll notify {ownerName} of these updates.
         </p>
 
@@ -667,16 +667,16 @@ function ConfirmModal({ changes, ownerName, onConfirm, onClose }) {
       onClick={onClose}
     >
       <div onClick={e => e.stopPropagation()} style={{
-        background: colors.white,
+        background: colors.background.primary,
         borderRadius: 8,
         boxShadow: '0px 4px 16px 0px rgba(0,0,0,0.12)',
         padding: 24,
         width: 400, maxWidth: 'calc(100vw - 48px)',
       }}>
-        <p style={{ ...tx(20, 600, colors.primary), lineHeight: 1.25, marginBottom: 8 }}>
+        <p style={{ ...tx(20, 600, colors.text.primary), lineHeight: 1.25, marginBottom: 8 }}>
           Confirm changes
         </p>
-        <p style={{ ...tx(14, 400, colors.primary), lineHeight: 1.5, marginBottom: 0 }}>
+        <p style={{ ...tx(14, 400, colors.text.primary), lineHeight: 1.5, marginBottom: 0 }}>
           Review your changes below. We'll notify {ownerName} of these updates.
         </p>
 
@@ -712,7 +712,7 @@ function SuccessBanner({ onDismiss }) {
         display: 'flex', gap: 12, alignItems: 'center',
       }}>
         <SuccessIcon />
-        <p style={{ ...tx(14, 600, colors.primary), lineHeight: 1.25, flex: 1, margin: 0 }}>
+        <p style={{ ...tx(14, 600, colors.text.primary), lineHeight: 1.25, flex: 1, margin: 0 }}>
           Upcoming weeks schedule was updated successfully
         </p>
         <button
@@ -932,14 +932,14 @@ export default function ScheduleScreen({ onBack, owner = {} }) {
   )
 
   const upcomingHeader = (
-    <div style={{ padding: '24px 16px 17px', borderBottom: `1px solid ${colors.border}`, background: colors.white }}>
+    <div style={{ padding: '24px 16px 17px', borderBottom: `1px solid ${colors.border.secondary}`, background: colors.background.primary }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-        <p style={{ ...tx(20, 600, colors.primary), flex: 1, lineHeight: 1.25, margin: 0 }}>
+        <p style={{ ...tx(20, 600, colors.text.primary), flex: 1, lineHeight: 1.25, margin: 0 }}>
           Upcoming weeks
         </p>
         <Button variant="primary" size="small" onClick={() => setShowAddDay(true)}>Add a day</Button>
       </div>
-      <p style={{ ...tx(14, 400, colors.secondary), lineHeight: 1.5, margin: 0 }}>
+      <p style={{ ...tx(14, 400, colors.text.secondary), lineHeight: 1.5, margin: 0 }}>
         Make changes to accommodate changes in your regular schedule.
       </p>
     </div>
@@ -961,8 +961,8 @@ export default function ScheduleScreen({ onBack, owner = {} }) {
   // Footer buttons — only when there are unsaved changes and no confirmed save
   const footer = !savedChanges && hasChanges ? (
     <div style={{
-      flexShrink: 0, background: colors.white,
-      borderTop: `1px solid ${colors.border}`,
+      flexShrink: 0, background: colors.background.primary,
+      borderTop: `1px solid ${colors.border.secondary}`,
       padding: '16px 16px 24px',
       display: 'flex', flexDirection: 'column', gap: 16,
     }}>
@@ -996,17 +996,17 @@ export default function ScheduleScreen({ onBack, owner = {} }) {
     : null
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: colors.bgSecondary }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: colors.background.secondary }}>
       {/* Nav header */}
       <div style={{
-        background: colors.white, borderBottom: `1px solid ${colors.border}`,
+        background: colors.background.primary, borderBottom: `1px solid ${colors.border.secondary}`,
         boxShadow: shadows.headerShadow, padding: '0 16px',
         display: 'flex', alignItems: 'center', gap: 8, height: 56, flexShrink: 0, zIndex: 3,
       }}>
         <div style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }} onClick={() => onBack(savedChanges)}>
           <BackIcon />
         </div>
-        <p style={{ ...tx(16, 700, colors.primary), margin: 0 }}>Modify schedule</p>
+        <p style={{ ...tx(16, 700, colors.text.primary), margin: 0 }}>Modify schedule</p>
       </div>
 
       {isDesktop ? (
@@ -1024,7 +1024,7 @@ export default function ScheduleScreen({ onBack, owner = {} }) {
           {/* Right column — header fixed, weeks scroll, footer fixed, banners floating */}
           <div ref={panelRef} style={{
             flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column',
-            background: colors.white, borderRadius: `${radius.primary}px ${radius.primary}px 0 0`,
+            background: colors.background.primary, borderRadius: `${radius.primary}px ${radius.primary}px 0 0`,
             overflow: 'hidden', position: 'relative',
           }}>
             <div style={{ flexShrink: 0 }}>{upcomingHeader}</div>
@@ -1043,7 +1043,7 @@ export default function ScheduleScreen({ onBack, owner = {} }) {
             <div style={{ padding: '16px 16px 0' }}>{sidebar}</div>
 
             {/* Upcoming panel — header sticks within scroll */}
-            <div ref={panelRef} style={{ margin: 16, background: colors.white, borderRadius: radius.primary }}>
+            <div ref={panelRef} style={{ margin: 16, background: colors.background.primary, borderRadius: radius.primary }}>
               <div style={{ position: 'sticky', top: 0, zIndex: 2, borderRadius: `${radius.primary}px ${radius.primary}px 0 0` }}>
                 {upcomingHeader}
               </div>

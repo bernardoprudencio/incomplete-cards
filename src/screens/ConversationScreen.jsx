@@ -11,7 +11,7 @@ import { useAppContext } from '../context/AppContext'
 
 const DayDivider = ({ label }) => (
   <div style={{ display: 'flex', justifyContent: 'center', padding: '16px 0' }}>
-    <span style={{ ...textStyles.heading100, color: colors.tertiary }}>{label}</span>
+    <span style={{ ...textStyles.heading100, color: colors.text.tertiary }}>{label}</span>
   </div>
 )
 
@@ -67,10 +67,10 @@ export default function ConversationScreen() {
   }, [liveEvents])
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: colors.white }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: colors.background.primary }}>
       {/* ─── Header ─── */}
       <div style={{
-        borderBottom: `1px solid ${colors.border}`,
+        borderBottom: `1px solid ${colors.border.secondary}`,
         boxShadow: shadows.headerShadow,
         padding: '12px 16px 0', flexShrink: 0, zIndex: 3,
       }}>
@@ -80,8 +80,8 @@ export default function ConversationScreen() {
             <PetAvatar size={48} images={[clientImg]} />
           </div>
           <div style={{ flex: 1, marginLeft: 8, minWidth: 0 }}>
-            <p style={{ ...textStyles.text200Semibold, color: colors.primary, margin: 0 }}>{clientName}</p>
-            <p style={{ ...textStyles.text100, color: colors.success, margin: 0 }}>Ongoing</p>
+            <p style={{ ...textStyles.text200Semibold, color: colors.text.primary, margin: 0 }}>{clientName}</p>
+            <p style={{ ...textStyles.text100, color: colors.text.success, margin: 0 }}>Ongoing</p>
           </div>
           <div style={{ cursor: 'pointer', flexShrink: 0 }}><MoreIcon /></div>
         </div>
@@ -125,7 +125,7 @@ export default function ConversationScreen() {
 
       {/* ─── Composer ─── */}
       <div style={{
-        borderTop: `1px solid ${colors.border}`, padding: '8px 12px',
+        borderTop: `1px solid ${colors.border.secondary}`, padding: '8px 12px',
         display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0,
       }}>
         <Button variant="default" icon={<ImageIcon />} />
@@ -137,13 +137,13 @@ export default function ConversationScreen() {
           style={{
             flex: 1,
             height: 44,
-            border: `2px solid ${colors.borderInteractive}`,
+            border: `2px solid ${colors.border.primary}`,
             borderRadius: 8,
             padding: '0 16px',
             fontFamily: typography.fontFamily,
             fontSize: 16,
-            color: colors.primary,
-            background: colors.white,
+            color: colors.text.primary,
+            background: colors.background.primary,
             outline: 'none',
             boxSizing: 'border-box',
           }}
