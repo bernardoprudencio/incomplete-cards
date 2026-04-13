@@ -37,8 +37,8 @@ export function getRuleImpact(unit, allUnits) {
   const occs = expandUnit(unit).filter(o => !o.skipped)
   const paidOccs       = occs.filter(o => isPaidOcc(o.start, paidThru) && o.start >= todayMid)
   const unpaidUpcoming = occs.filter(o => !isPaidOcc(o.start, paidThru) && o.start >= todayMid)
-  const refundTotal    = paidOccs.reduce((sum, o) => sum + (o.unit.cost || 0), 0)
-  const chargeTotal    = unpaidUpcoming.length > 0 ? (unpaidUpcoming[0].unit.cost || 0) : 0
+  const refundTotal    = paidOccs.reduce((sum, o) => sum + unitTotalCost(o.unit), 0)
+  const chargeTotal    = unpaidUpcoming.length > 0 ? unitTotalCost(unpaidUpcoming[0].unit) : 0
   return { paidOccs, unpaidUpcoming, refundTotal, chargeTotal }
 }
 
@@ -49,7 +49,7 @@ export function newId() { return ++_nextId }
 // ── Unit factory ──────────────────────────────────────────────────────────────
 export function defaultUnit(serviceId, overrides = {}) {
   const svc = SERVICES.find(s => s.id === serviceId)
-  return {
+  const base = {
     id: newId(),
     serviceId,
     startDate: '',
@@ -58,14 +58,25 @@ export function defaultUnit(serviceId, overrides = {}) {
     startTime: '09:00',
     durationMins: (svc && svc.id) === 'doggy_daycare' ? 480 : 60,
     petIds: [],
+    petCosts: {},
     frequency: 'once',
     weekDays: [],
     everyNWeeks: 1,
     skippedKeys: [],
     overrides: {},
-    cost: 20,
     ...overrides,
   }
+  // Ensure every petId has a rate; default to $20/pet if not already set
+  const petCosts = { ...base.petCosts }
+  for (const pid of base.petIds) {
+    if (!(pid in petCosts)) petCosts[pid] = 20
+  }
+  return { ...base, petCosts }
+}
+
+/** Sum all per-pet costs on a unit — this is the total charge per occurrence. */
+export function unitTotalCost(unit) {
+  return Object.values(unit.petCosts || {}).reduce((s, c) => s + c, 0)
 }
 
 // ── Overlap detection ─────────────────────────────────────────────────────────
@@ -233,13 +244,13 @@ export function computeScheduleDiff(savedUnits, draftUnits) {
   // Per-item finance for added units (charges)
   const added = addedUnits.map(u => {
     const paid = expandUnit(u).filter(o => isPaidOcc(o.start, paidThru) && o.start >= todayMid)
-    return { unit: u, chargeAmount: paid.length * (u.cost || 0), chargeCount: paid.length }
+    return { unit: u, chargeAmount: paid.length * unitTotalCost(u), chargeCount: paid.length }
   })
 
   // Per-item finance for removed units (refunds)
   const removed = removedUnits.map(u => {
     const occs = expandUnit(u).filter(o => !o.skipped && isPaidOcc(o.start, paidThru) && o.start >= todayMid)
-    return { unit: u, refundAmount: occs.length * (u.cost || 0), refundCount: occs.length }
+    return { unit: u, refundAmount: occs.length * unitTotalCost(u), refundCount: occs.length }
   })
 
   // Flat skipped list with per-occurrence refund amounts
@@ -251,8 +262,9 @@ export function computeScheduleDiff(savedUnits, draftUnits) {
     for (const dk of (draft.skippedKeys || [])) {
       if (!savedKeys.has(dk)) {
         const occ = expandUnit(draft).find(o => dateKey(o.start) === dk)
-        const refundAmount = occ && isPaidOcc(occ.start, paidThru) && occ.start >= todayMid && draft.cost > 0
-          ? draft.cost : 0
+        const draftCost = unitTotalCost(draft)
+        const refundAmount = occ && isPaidOcc(occ.start, paidThru) && occ.start >= todayMid && draftCost > 0
+          ? draftCost : 0
         skipped.push({ unit: draft, dk, refundAmount })
       }
     }

@@ -56,7 +56,7 @@ export const getOwnerRelUnit = (owner, petIds = []) => {
     everyNWeeks: 1,
     skippedKeys: [],
     overrides: {},
-    cost: 20,
+    petCosts: Object.fromEntries(petIds.map(id => [id, 20])),
   }
 }
 

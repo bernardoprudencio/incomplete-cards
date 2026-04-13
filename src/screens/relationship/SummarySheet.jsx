@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { R, fontFamily } from './theme'
 import { textStyles } from '../../tokens'
-import { computeScheduleDiff, shortRuleLabel, expandUnit, isPaidOcc, getPaidThruSunday } from '../../lib/scheduleHelpers'
+import { computeScheduleDiff, shortRuleLabel, expandUnit, isPaidOcc, getPaidThruSunday, unitTotalCost } from '../../lib/scheduleHelpers'
 import { parseDate, dateKey, addDays, fmtDate, fmtDateLong, fmtTime } from '../../lib/dateUtils'
 import { PROTO_TODAY } from '../../data/owners'
 import { SERVICES } from '../../data/services'
@@ -36,20 +36,28 @@ function computeWeekBilling(savedUnits, draftUnits, petsArr) {
   const savedOccs = weekOccs(savedUnits)
   const draftOccs = weekOccs(draftUnits)
 
-  const savedTotal = savedOccs.reduce((s, { unit: u }) => s + (u.cost || 0), 0)
-  const draftTotal = draftOccs.reduce((s, { unit: u }) => s + (u.cost || 0), 0)
+const savedTotal = savedOccs.reduce((s, { unit: u }) => s + unitTotalCost(u), 0)
+  const draftTotal = draftOccs.reduce((s, { unit: u }) => s + unitTotalCost(u), 0)
 
-  // Build line items from draft; fall back to saved when all were removed
+  // One line item per (pet × serviceId). Each occurrence increments every pet in the unit.
   const sourceOccs = draftOccs.length > 0 ? draftOccs : savedOccs
-  const seen = new Set()
-  const lineItems = []
+  const petSvcMap = new Map() // key: `${petId}|${serviceId}`
   for (const { unit: u } of sourceOccs) {
-    if (seen.has(u.id)) continue
-    seen.add(u.id)
-    const count    = sourceOccs.filter(o => o.unit.id === u.id).length
-    const petNames = petsArr.filter(p => u.petIds.includes(p.id)).map(p => p.name).join(' & ') || 'Pets'
-    lineItems.push({ unit: u, count: draftOccs.length > 0 ? count : 0, petNames, total: draftOccs.length > 0 ? count * (u.cost || 0) : 0 })
+    for (const petId of (u.petIds || [])) {
+      const key = `${petId}|${u.serviceId}`
+      if (!petSvcMap.has(key)) {
+        const pet = petsArr.find(p => p.id === petId)
+        const rate = (u.petCosts || {})[petId] ?? 20
+        petSvcMap.set(key, { unit: u, petNames: pet?.name || 'Pet', cost: rate, count: 0 })
+      }
+      petSvcMap.get(key).count += 1
+    }
   }
+  const lineItems = [...petSvcMap.values()].map(g => ({
+    ...g,
+    count: draftOccs.length > 0 ? g.count : 0,
+    total: draftOccs.length > 0 ? g.count * g.cost : 0,
+  }))
 
   const net = draftTotal - savedTotal
   return { savedTotal, draftTotal, net, lineItems, hasActivity: savedOccs.length !== draftOccs.length || net !== 0 }
@@ -68,6 +76,12 @@ export default function SummarySheet({ savedUnits, draftUnits, pets, onConfirm, 
   const { added, removed, modified, skipped, overridden, refundTotal, chargeTotal, netAmount, totalCount } = diff
 
   const ul = UNIT_LABEL
+
+  // A single-occurrence time edit is superseded when the same occurrence is also removed.
+  // Suppress such overrides everywhere (review list, count, confirm message).
+  const effectiveOverridden = overridden.filter(({ unit, dk }) =>
+    !skipped.some(sk => sk.unit.id === unit.id && sk.dk === dk)
+  )
 
   const isEmpty = totalCount === 0
   const { savedTotal, draftTotal, net, lineItems, hasActivity } = computeWeekBilling(savedUnits, draftUnits, pets)
@@ -129,17 +143,130 @@ export default function SummarySheet({ savedUnits, draftUnits, pets, onConfirm, 
     chain.forEach(({ contUnit }) => consumedAddedIds.add(contUnit.id))
 
     // Edit-time continuation: unchanged days carried forward at original time.
-    // Show as an informational "continues" row, not a removal.
+    // Unify with the _parentTime sibling into one row: "Changed X to Y / From date onward".
+    // Also handles the case where the continuation itself was later split by cancelDayFromDate:
+    // in that case, suppress contLabel on the edit row and emit separate removal rows for the tail.
     if (isEditContinuation) {
       const pivotDate = parseDate(rootCont.startDate)
-      continuationGroups.push({
-        key: `cont-${rootCont.id}`,
-        date: pivotDate,
-        label: `${fmtDays(rootCont.weekDays || [])} ${ul(rootCont.serviceId)} continues at ${fmtTime(rootCont.startTime)}`,
-        sublabel: `Starting ${fmtDateLong(pivotDate)}`,
-        contLabel: null,
-        isInformational: true,
-      })
+      const parentEntry = added.find(({ unit: au }) =>
+        au._parentTime &&
+        au.startDate === rootCont.startDate &&
+        au.serviceId === rootCont.serviceId
+      )
+      if (parentEntry) {
+        consumedAddedIds.add(parentEntry.unit.id)
+        const pu = parentEntry.unit
+
+        // Build a tail chain from rootCont by following subsequent cancelDayFromDate splits.
+        // cancelDayFromDate sets repeatEndDate = dk-1 on parent, new unit startDate = dk,
+        // so the link is: nextUnit.startDate === addDays(current.repeatEndDate, 1).
+        const tailChain = []
+        let tailCurrent = rootCont
+        while (tailCurrent.repeatEndDate) {
+          const nextStartDate = dateKey(addDays(parseDate(tailCurrent.repeatEndDate), 1))
+          const nextEntry = added.find(({ unit: au }) =>
+            au._continuation &&
+            !consumedAddedIds.has(au.id) &&
+            au.id !== tailCurrent.id &&
+            au.startDate === nextStartDate &&
+            au.startTime === tailCurrent.startTime &&
+            au.serviceId === tailCurrent.serviceId
+          )
+          if (!nextEntry) break
+          tailChain.push({ contUnit: nextEntry.unit, parentWeekDays: tailCurrent.weekDays || [] })
+          consumedAddedIds.add(nextEntry.unit.id)
+          tailCurrent = nextEntry.unit
+        }
+
+        // After the loop, tailCurrent is the last unit processed.
+        // If it still has repeatEndDate AND that date is in skippedKeys, endRuleFromDate()
+        // terminated it (no new continuation was created) — we'll need a final removal row.
+        const isChainTerminated = !!(tailCurrent.repeatEndDate &&
+          (tailCurrent.skippedKeys || []).includes(tailCurrent.repeatEndDate))
+
+        // Terminal surviving days: only if the last unit has no repeatEndDate
+        const terminalCont = tailChain.length > 0 ? tailChain[tailChain.length - 1].contUnit : null
+        const terminalDays = terminalCont && !terminalCont.repeatEndDate
+          ? (terminalCont.weekDays || [])
+          : []
+
+        // Only show contLabel on the edit row when the continuation is unmodified.
+        // If rootCont itself has a repeatEndDate, it was further split — don't claim those days
+        // "continue as scheduled" here; the tail removal rows will explain what happened.
+        const hasTailChanges = tailChain.length > 0 || !!rootCont.repeatEndDate
+        const editContDays = hasTailChanges ? [] : (rootCont.weekDays || [])
+
+        let editSublabel, confirmUntil = ''
+        if (pu.repeatEndDate) {
+          const puOccs = expandUnit(pu)
+          const lastOccStart = puOccs.length > 0 ? puOccs[puOccs.length - 1].start : pivotDate
+          editSublabel = `From ${fmtDateLong(pivotDate)} until ${fmtDateLong(lastOccStart)}`
+          confirmUntil = ` until ${fmtDate(lastOccStart)}`
+        } else {
+          editSublabel = `From ${fmtDateLong(pivotDate)} onward`
+        }
+
+        continuationGroups.push({
+          key: `edit-${pu.id}`,
+          date: pivotDate,
+          label: `Changed ${fmtTime(pu._parentTime)} ${ul(pu.serviceId)} to ${fmtTime(pu.startTime)}`,
+          sublabel: editSublabel,
+          contLabel: null,
+          isInformational: false,
+          _confirmLine: `Changed ${ul(pu.serviceId)} from ${fmtTime(pu._parentTime)} to ${fmtTime(pu.startTime)} — from ${fmtDate(pivotDate)}${confirmUntil || ' onward'}`,
+        })
+
+        // Emit one removal row per meaningful tail transition (days removed from continuation).
+        const tailMeaningful = tailChain
+          .map(link => ({
+            ...link,
+            removedDays: link.parentWeekDays.filter(d => !(link.contUnit.weekDays || []).includes(d)),
+          }))
+          .filter(link => link.removedDays.length > 0)
+
+        for (let ti = 0; ti < tailMeaningful.length; ti++) {
+          const { contUnit } = tailMeaningful[ti]
+          const isLastTail = ti === tailMeaningful.length - 1
+          const tailPivot = parseDate(contUnit.startDate)
+          // Only show contLabel on the last tail row when there are truly surviving days
+          // (terminalDays is empty if terminalCont was itself later terminated)
+          const tailContLabel = null
+          continuationGroups.push({
+            key: `cont-tail-${contUnit.id}`,
+            date: tailPivot,
+            label: `Removed ${fmtTime(contUnit.startTime)} ${ul(contUnit.serviceId)}`,
+            sublabel: `From ${fmtDateLong(tailPivot)} onward`,
+            contLabel: tailContLabel,
+            isInformational: false,
+            _confirmLine: `Removed ${fmtTime(contUnit.startTime)} ${ul(contUnit.serviceId)} — from ${fmtDate(tailPivot)} onward`,
+          })
+        }
+
+        // If the final unit in the chain was terminated by endRuleFromDate (single-day removal),
+        // emit one more removal row for that termination.
+        if (isChainTerminated && (tailCurrent.weekDays || []).length > 0) {
+          const termPivot = parseDate(tailCurrent.repeatEndDate)
+          continuationGroups.push({
+            key: `cont-tail-end-${tailCurrent.id}`,
+            date: termPivot,
+            label: `Removed ${fmtTime(tailCurrent.startTime)} ${ul(tailCurrent.serviceId)}`,
+            sublabel: `From ${fmtDateLong(termPivot)} onward`,
+            contLabel: null,
+            isInformational: false,
+            _confirmLine: `Removed ${fmtTime(tailCurrent.startTime)} ${ul(tailCurrent.serviceId)} — from ${fmtDate(termPivot)}`,
+          })
+        }
+      } else {
+        // Fallback: no _parentTime sibling found; show informational continuation row
+        continuationGroups.push({
+          key: `cont-${rootCont.id}`,
+          date: pivotDate,
+          label: `${fmtDays(rootCont.weekDays || [])} ${ul(rootCont.serviceId)} unchanged`,
+          sublabel: `Starting ${fmtDateLong(pivotDate)}`,
+          contLabel: null,
+          isInformational: true,
+        })
+      }
       continue
     }
 
@@ -201,24 +328,40 @@ export default function SummarySheet({ savedUnits, draftUnits, pets, onConfirm, 
         date: pivotDate,
         label: `Removed ${fmtTime(contUnit.startTime)} ${ul(contUnit.serviceId)}`,
         sublabel: `From ${fmtDateLong(pivotDate)} onward${refundSuffix(refundAmount)}`,
-        contLabel: isLastMeaningful && !isTerminated && effectiveContDays.length > 0
-          ? `${fmtDays(effectiveContDays)} ${ul(contUnit.serviceId)} continues as scheduled`
-          : null,
+        contLabel: null,
         isInformational: false,
+        _confirmLine: `Removed ${fmtTime(contUnit.startTime)} ${ul(contUnit.serviceId)} — from ${fmtDate(pivotDate)} onward${refundSuffix(refundAmount)}`,
       })
     }
 
-    // If terminated (endRuleFromDate on a single-day rule), add one more row for the final removal
+    // If the terminal node has a repeatEndDate, determine whether it was a genuine removal
+    // (endRuleFromDate) or a split by cancelDayFromDate/overrideFromDate.
+    // A split leaves a _continuation unit starting the day after repeatEndDate.
+    // Genuine removals emit a final row; splits consume the orphaned continuation silently.
     if (isTerminated && terminalNode.weekDays && terminalNode.weekDays.length > 0) {
-      const termPivotDate = parseDate(terminalNode.repeatEndDate)
-      continuationGroups.push({
-        key: `cont-${terminalNode.id}-end`,
-        date: termPivotDate,
-        label: `Removed ${fmtTime(terminalNode.startTime)} ${ul(terminalNode.serviceId)}`,
-        sublabel: `From ${fmtDateLong(termPivotDate)} onward`,
-        contLabel: null,
-        isInformational: false,
-      })
+      const splitStart = dateKey(addDays(parseDate(terminalNode.repeatEndDate), 1))
+      const splitConts = added.filter(({ unit: au }) =>
+        au._continuation &&
+        !consumedAddedIds.has(au.id) &&
+        au.startDate === splitStart &&
+        au.serviceId === terminalNode.serviceId
+      )
+      if (splitConts.length > 0) {
+        // Split — the continuation carries forward unchanged days alongside a _parentTime
+        // edit unit. Consume it silently; the edit row handles the summary.
+        splitConts.forEach(({ unit: au }) => consumedAddedIds.add(au.id))
+      } else {
+        const termPivotDate = parseDate(terminalNode.repeatEndDate)
+        continuationGroups.push({
+          key: `cont-${terminalNode.id}-end`,
+          date: termPivotDate,
+          label: `Removed ${fmtTime(terminalNode.startTime)} ${ul(terminalNode.serviceId)}`,
+          sublabel: `From ${fmtDateLong(termPivotDate)} onward`,
+          contLabel: null,
+          isInformational: false,
+          _confirmLine: `Removed ${fmtTime(terminalNode.startTime)} ${ul(terminalNode.serviceId)} — from ${fmtDate(termPivotDate)}`,
+        })
+      }
     }
   }
 
@@ -227,7 +370,7 @@ export default function SummarySheet({ savedUnits, draftUnits, pets, onConfirm, 
     + removed.length
     + (modified.length - consumedModifiedIds.size)
     + (skipped.length - consumedSkipKeys.size)
-    + overridden.length
+    + effectiveOverridden.length
   const displayCount = continuationGroups.filter(g => !g.isInformational).length + remainingCount
 
   const handleConfirm = () => {
@@ -235,7 +378,7 @@ export default function SummarySheet({ savedUnits, draftUnits, pets, onConfirm, 
       ...added.filter(({ unit: u }) => !consumedAddedIds.has(u.id)).map(({ unit: u }) => ({
         date: parseDate(u.startDate),
         line: u._parentTime
-          ? `Changed ${ul(u.serviceId)} rule to ${fmtTime(u.startTime)} — ${shortRuleLabel(u)} starting ${fmtDate(parseDate(u.startDate))}`
+          ? `Changed ${ul(u.serviceId)} from ${fmtTime(u._parentTime)} to ${fmtTime(u.startTime)} — from ${fmtDate(parseDate(u.startDate))}${u.repeatEndDate ? ` until ${fmtDate(parseDate(u.repeatEndDate))}` : ' onward'}`
           : u.frequency === 'once'
             ? `Added ${ul(u.serviceId)} on ${fmtDate(parseDate(u.startDate))}`
             : `Added ${ul(u.serviceId)} rule — ${shortRuleLabel(u)} at ${fmtTime(u.startTime)} starting ${fmtDate(parseDate(u.startDate))}`,
@@ -246,20 +389,27 @@ export default function SummarySheet({ savedUnits, draftUnits, pets, onConfirm, 
           ? `Removed ${ul(u.serviceId)} on ${fmtDate(parseDate(u.startDate))}`
           : `Removed ${ul(u.serviceId)} rule — ${shortRuleLabel(u)} at ${fmtTime(u.startTime)} starting ${fmtDate(parseDate(u.startDate))}`,
       })),
-      ...modified.map(({ saved, draft }) => {
-        const isEnded = !saved.repeatEndDate && !!draft.repeatEndDate
-        return {
-          date: draft.repeatEndDate ? parseDate(draft.repeatEndDate) : parseDate(draft.startDate),
-          line: isEnded
-            ? `Ended ${ul(draft.serviceId)} rule — ${shortRuleLabel(draft)} at ${fmtTime(draft.startTime)}, ends ${fmtDate(parseDate(draft.repeatEndDate))}`
-            : `Updated ${ul(draft.serviceId)} rule — ${shortRuleLabel(draft)} at ${fmtTime(draft.startTime)}${draft.repeatEndDate ? `, ends ${fmtDate(parseDate(draft.repeatEndDate))}` : ''}`,
-        }
-      }),
-      ...skipped.map(({ unit, dk }) => ({
-        date: parseDate(dk),
-        line: `Removed ${ul(unit.serviceId)} on ${fmtDate(parseDate(dk))}`,
+      ...modified
+        .filter(({ draft }) => !consumedModifiedIds.has(draft.id))
+        .map(({ saved, draft }) => {
+          const isEnded = !saved.repeatEndDate && !!draft.repeatEndDate
+          return {
+            date: draft.repeatEndDate ? parseDate(draft.repeatEndDate) : parseDate(draft.startDate),
+            line: isEnded
+              ? `Ended ${ul(draft.serviceId)} rule — ${shortRuleLabel(draft)} at ${fmtTime(draft.startTime)}, ends ${fmtDate(parseDate(draft.repeatEndDate))}`
+              : `Updated ${ul(draft.serviceId)} rule — ${shortRuleLabel(draft)} at ${fmtTime(draft.startTime)}${draft.repeatEndDate ? `, ends ${fmtDate(parseDate(draft.repeatEndDate))}` : ''}`,
+          }
+        }),
+      ...continuationGroups
+        .filter(g => g._confirmLine)
+        .map(g => ({ date: g.date, line: g._confirmLine })),
+      ...skipped
+        .filter(({ unit: su, dk }) => !consumedSkipKeys.has(`${su.id}-${dk}`))
+        .map(({ unit, dk }) => ({
+          date: parseDate(dk),
+          line: `Removed ${ul(unit.serviceId)} on ${fmtDate(parseDate(dk))}`,
       })),
-      ...overridden.map(({ unit, dk, newTime }) => ({
+      ...effectiveOverridden.map(({ unit, dk, newTime }) => ({
         date: parseDate(dk),
         line: `Updated ${ul(unit.serviceId)} on ${fmtDateLong(parseDate(dk))} — new time ${fmtTime(newTime)}`,
       })),
@@ -315,14 +465,14 @@ export default function SummarySheet({ savedUnits, draftUnits, pets, onConfirm, 
             <p style={{ ...textStyles.heading200, color: R.navy, margin: '0 0 12px' }}>This week's summary</p>
 
             {lineItems.map((item, i) => (
-              <div key={`${item.unit.id}-${i}`} style={{ padding: '12px 0', ...(i > 0 ? divider : {}) }}>
+              <div key={`${item.unit.serviceId}-${item.petNames}-${i}`} style={{ padding: '12px 0', ...(i > 0 ? divider : {}) }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 2 }}>
                   <p style={{ ...textStyles.text100Semibold, color: R.navy, margin: 0 }}>{item.petNames}</p>
                   <p style={{ ...textStyles.text100Semibold, color: R.navy, margin: 0 }}>{fmt(item.total)}</p>
                 </div>
                 <p style={{ ...textStyles.paragraph100, color: R.gray, margin: 0 }}>{SVC_LABEL(item.unit.serviceId)}</p>
                 <p style={{ ...textStyles.paragraph100, color: R.gray, margin: 0 }}>
-                  {fmt(item.unit.cost || 0)} per {UNIT_LABEL(item.unit.serviceId)} × {item.count} {item.count === 1 ? UNIT_LABEL(item.unit.serviceId) : UNIT_LABEL(item.unit.serviceId) + 's'}
+                  {fmt(item.cost)} per {UNIT_LABEL(item.unit.serviceId)} × {item.count} {item.count === 1 ? UNIT_LABEL(item.unit.serviceId) : UNIT_LABEL(item.unit.serviceId) + 's'}
                 </p>
               </div>
             ))}
@@ -379,11 +529,19 @@ export default function SummarySheet({ savedUnits, draftUnits, pets, onConfirm, 
       .map(({ unit: u, chargeAmount }) => {
         const startDate = parseDate(u.startDate)
         if (u._parentTime) {
+          let ptSublabel
+          if (u.repeatEndDate) {
+            const ptOccs = expandUnit(u)
+            const lastOccStart = ptOccs.length > 0 ? ptOccs[ptOccs.length - 1].start : startDate
+            ptSublabel = `From ${fmtDateLong(startDate)} until ${fmtDateLong(lastOccStart)}`
+          } else {
+            ptSublabel = `From ${fmtDateLong(startDate)} onward`
+          }
           return {
             key: `add-${u.id}`,
             date: startDate,
-            label: `${fmtTime(u._parentTime)} ${ul(u.serviceId)} moved to ${fmtTime(u.startTime)}`,
-            sublabel: `Starting ${fmtDateLong(startDate)}, ${shortRuleLabel(u).replace(/^Repeats/, 'repeats')}`,
+            label: `Changed ${fmtTime(u._parentTime)} ${ul(u.serviceId)} to ${fmtTime(u.startTime)}`,
+            sublabel: ptSublabel,
           }
         }
         if (u.frequency === 'once') {
@@ -442,7 +600,7 @@ export default function SummarySheet({ savedUnits, draftUnits, pets, onConfirm, 
         label: `Removed ${fmtTime(unit.startTime)} ${ul(unit.serviceId)}`,
         sublabel: `${fmtDateLong(parseDate(dk))}${refundSuffix(refundAmount)}`,
       })),
-    ...overridden.map(({ unit, dk, newTime }) => ({
+    ...effectiveOverridden.map(({ unit, dk, newTime }) => ({
       key: `ovr-${unit.id}-${dk}`,
       date: parseDate(dk),
       label: `${fmtTime(unit.startTime)} ${ul(unit.serviceId)} moved to ${fmtTime(newTime)}`,

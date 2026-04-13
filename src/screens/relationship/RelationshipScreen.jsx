@@ -11,7 +11,7 @@ import AddSheet from './AddSheet'
 import OccActionSheet from './OccActionSheet'
 import ManageSheet from './ManageSheet'
 
-const RelationshipScreen = forwardRef(function RelationshipScreen({initialPets, initialUnits, ownerFirstName = '', onScheduleChange, onReviewComplete, isIncompleteResolved = false}, ref) {
+const RelationshipScreen = forwardRef(function RelationshipScreen({initialPets, initialUnits, ownerFirstName = '', onScheduleChange, onScheduleConfirmed, onReviewComplete, isIncompleteResolved = false}, ref) {
   const [pets,       setPets]       = useState(initialPets || PETS_SEED)
   const [units,      setUnits]      = useState(initialUnits || [])
   const [relEndDate, setRelEndDate] = useState("")
@@ -86,6 +86,7 @@ const RelationshipScreen = forwardRef(function RelationshipScreen({initialPets, 
       const newUnit = {
         ...defaultUnit(parentUnit.serviceId, {
           petIds:      parentUnit.petIds,
+          petCosts:    parentUnit.petCosts,
           startDate:   dk,
           startTime:   parentUnit.startTime,
           durationMins:parentUnit.durationMins,
@@ -118,7 +119,7 @@ const RelationshipScreen = forwardRef(function RelationshipScreen({initialPets, 
         // Multi-day: replace parent entirely to avoid a zombie with repeatEndDate < startDate
         const changedUnit = {
           ...defaultUnit(draft.serviceId, {
-            petIds: draft.petIds, startDate: dk, startTime: draft.startTime,
+            petIds: draft.petIds, petCosts: parent.petCosts, startDate: dk, startTime: draft.startTime,
             durationMins: draft.durationMins, frequency: parent.frequency,
             weekDays: [occDow], everyNWeeks: parent.everyNWeeks,
           }),
@@ -127,7 +128,7 @@ const RelationshipScreen = forwardRef(function RelationshipScreen({initialPets, 
         }
         const continuationUnit = {
           ...defaultUnit(parent.serviceId, {
-            petIds: parent.petIds, startDate: dk, startTime: parent.startTime,
+            petIds: parent.petIds, petCosts: parent.petCosts, startDate: dk, startTime: parent.startTime,
             durationMins: parent.durationMins, frequency: parent.frequency,
             weekDays: otherDays, everyNWeeks: parent.everyNWeeks,
           }),
@@ -143,6 +144,7 @@ const RelationshipScreen = forwardRef(function RelationshipScreen({initialPets, 
       const changedUnit = {
         ...defaultUnit(draft.serviceId, {
           petIds:      draft.petIds,
+          petCosts:    parent.petCosts,
           startDate:   dk,
           startTime:   draft.startTime,
           durationMins:draft.durationMins,
@@ -158,6 +160,7 @@ const RelationshipScreen = forwardRef(function RelationshipScreen({initialPets, 
       const continuationUnit = {
         ...defaultUnit(parent.serviceId, {
           petIds:      parent.petIds,
+          petCosts:    parent.petCosts,
           startDate:   dk,
           startTime:   parent.startTime,
           durationMins:parent.durationMins,
@@ -325,6 +328,7 @@ const RelationshipScreen = forwardRef(function RelationshipScreen({initialPets, 
             setSavedVersion(v => v + 1)
             emit(text, units)
             setShowSummary(false)
+            onScheduleConfirmed?.()
           }}
           onBack={() => setShowSummary(false)}
         />
@@ -336,7 +340,7 @@ const RelationshipScreen = forwardRef(function RelationshipScreen({initialPets, 
           label:    `${reviewOcc.svc.label}${occPets.length > 0 ? `: ${occPets.map(p => p.name).join(", ")}` : ""}`,
           sublabel: `${fmtRelDate(reviewOcc.start)} · ${fmtTime(reviewOcc.unit.startTime)} to ${fmtTime(endT)}`,
           images:   occPets.map(p => p.img),
-          cost:     reviewOcc.unit.cost ? `$${reviewOcc.unit.cost.toFixed(2)}` : "",
+          cost:     (() => { const t = Object.values(reviewOcc.unit.petCosts || {}).reduce((s,c)=>s+c,0); return t > 0 ? `$${t.toFixed(2)}` : "" })(),
           dateLabel: fmtRelDate(reviewOcc.start),
         }
         const handleResolve = resolution => {
