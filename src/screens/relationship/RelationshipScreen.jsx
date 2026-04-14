@@ -175,6 +175,40 @@ const RelationshipScreen = forwardRef(function RelationshipScreen({initialPets, 
     })
   }
 
+  const overrideFromDateAll = (occ, draft) => {
+    const dk       = dateKey(occ.start)
+    const parentId = occ.parentUnit ? occ.parentUnit.id : occ.unit.id
+    setUnits(prev => {
+      const parent = prev.find(u => u.id === parentId); if(!parent) return prev
+
+      // Editing from the very first occurrence — update all weekdays in-place
+      if(dk === parent.startDate) {
+        return prev.map(u => u.id !== parentId ? u : {...u, startTime: draft.startTime, durationMins: draft.durationMins})
+      }
+
+      // Split: end original at day before, new rule keeps ALL weekdays with new time
+      const updated = prev.map(u =>
+        u.id !== parentId ? u : {...u, repeatEndDate: dateKey(addDays(occ.start, -1))}
+      )
+      const changedUnit = {
+        ...defaultUnit(draft.serviceId, {
+          petIds:       draft.petIds,
+          petCosts:     parent.petCosts,
+          startDate:    dk,
+          startTime:    draft.startTime,
+          durationMins: draft.durationMins,
+          frequency:    parent.frequency,
+          weekDays:     parent.weekDays,
+          everyNWeeks:  parent.everyNWeeks,
+        }),
+        repeatEndDate: parent.repeatEndDate || "",
+        endDate:       parent.endDate || "",
+        _parentTime:   parent.startTime,
+      }
+      return [...updated, changedUnit]
+    })
+  }
+
   const [resolvedIncompleteKey, setResolvedIncompleteKey] = useState(null)
 
   const allEnded = units.length > 0 && units.every(u => !!u.repeatEndDate)
@@ -314,6 +348,7 @@ const RelationshipScreen = forwardRef(function RelationshipScreen({initialPets, 
           onSkip={skipOccurrence}
           onOverride={overrideOccurrence}
           onOverrideFromDate={overrideFromDate}
+          onOverrideFromDateAll={overrideFromDateAll}
           onCancelDayFromDate={cancelDayFromDate}
           onCancel={u => { setActiveOcc(null); setUnits(prev => prev.filter(x => x.id !== u.id)) }}
           onClose={() => setActiveOcc(null)}

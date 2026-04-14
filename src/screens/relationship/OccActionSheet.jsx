@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { R } from './theme'
 import { textStyles } from '../../tokens'
 import { dateKey, fmtDate, fmtDateLong, fmtTime, addDays, nightCount, endTimeFromDuration } from '../../lib/dateUtils'
-import { shortSvcName } from '../../lib/scheduleHelpers'
+import { shortSvcName, shortRuleLabel } from '../../lib/scheduleHelpers'
 import Button from '../../components/Button'
 import Row from '../../components/Row'
 import PetAvatar from '../../components/PetAvatar'
@@ -11,7 +11,7 @@ import RadioRow from '../../components/RadioRow'
 import { CancelIcon } from '../../assets/icons'
 import UnitEditor from './UnitEditor'
 
-export default function OccActionSheet({occ, allPets, onSaveUnit, onSkip, onOverride, onOverrideFromDate, onCancelDayFromDate, onCancel, onClose}) {
+export default function OccActionSheet({occ, allPets, onSaveUnit, onSkip, onOverride, onOverrideFromDate, onOverrideFromDateAll, onCancelDayFromDate, onCancel, onClose}) {
   const [view,  setView]  = useState("editForm")
   const [draft, setDraft] = useState({...occ.unit, startDate: dateKey(occ.start)})
   const [scope, setScope] = useState("this")
@@ -24,8 +24,12 @@ export default function OccActionSheet({occ, allPets, onSaveUnit, onSkip, onOver
     ? `${fmtDate(occ.start)} to ${fmtDate(occ.end)} · ${occ.totalNights || nightCount(occ.unit)} night${(occ.totalNights || nightCount(occ.unit)) !== 1 ? "s" : ""}`
     : `${fmtDateLong(occ.start)} · ${fmtTime(occ.unit.startTime)} to ${fmtTime(endT)}`
   const svcName = shortSvcName(occ.svc)
-  const dayLabel = occ.start.toLocaleDateString('en-US', { weekday: 'long' })
+  const dayLabel = occ.start.toLocaleDateString('en-US', { weekday: 'long' }) + 's'
   const followingDetail = `${fmtTime(occ.unit.startTime)} ${svcName}s on ${dayLabel}`
+  const parentUnit         = occ.parentUnit || occ.unit
+  const isMultiDay         = (parentUnit.weekDays || []).length > 1
+  const allDaysLabel       = shortRuleLabel(parentUnit)
+  const followingAllDetail = `${fmtTime(parentUnit.startTime)} ${svcName}s on ${allDaysLabel}`
 
   const headerRow = label => (
     <Row label={label} sublabel={dateLabel} rightItem={<PetAvatar size={48} images={occPets.map(p => p.img)}/>} firstRow/>
@@ -79,8 +83,14 @@ export default function OccActionSheet({occ, allPets, onSaveUnit, onSkip, onOver
       {headerRow(`Edit ${svcName}`)}
       <RadioRow label={`This ${svcName} only`} value="this" selected={scope} onSelect={setScope}/>
       <RadioRow label={`This and following ${svcName}s`} sublabel={followingDetail} value="following" selected={scope} onSelect={setScope}/>
+      {isMultiDay && <RadioRow label={`This and following ${svcName}s`} sublabel={followingAllDetail} value="followingAll" selected={scope} onSelect={setScope}/>}
       <div style={{marginTop:16}}>
-        <Button variant="primary" size="small" fullWidth onClick={() => {scope === "this" ? onOverride(occ, draft) : onOverrideFromDate(occ, draft); onClose()}}>Save changes</Button>
+        <Button variant="primary" size="small" fullWidth onClick={() => {
+          if(scope === "this")           { onOverride(occ, draft) }
+          else if(scope === "following") { onOverrideFromDate(occ, draft) }
+          else                          { onOverrideFromDateAll(occ, draft) }
+          onClose()
+        }}>Save changes</Button>
         <div style={{marginTop:12}}><Button variant="default" size="small" fullWidth onClick={onClose}>Close</Button></div>
       </div>
     </BottomSheet>
@@ -88,14 +98,16 @@ export default function OccActionSheet({occ, allPets, onSaveUnit, onSkip, onOver
 
   if(view === "removeScope") {
     const handleConfirm = () => {
-      if(scope === "this") { onSkip(occ.key, true); onClose() }
-      else { applyRemoveFollowing(); onClose() }
+      if(scope === "this")           { onSkip(occ.key, true); onClose() }
+      else if(scope === "following") { applyRemoveFollowing(); onClose() }
+      else                          { endRuleFromDate(); onClose() }
     }
     return (
       <BottomSheet onDismiss={onClose}>
         {headerRow(`Remove ${svcName}`)}
         <RadioRow label={`This ${svcName} only`} value="this" selected={scope} onSelect={setScope}/>
         <RadioRow label={`This and following ${svcName}s`} sublabel={followingDetail} value="following" selected={scope} onSelect={setScope}/>
+        {isMultiDay && <RadioRow label={`This and following ${svcName}s`} sublabel={followingAllDetail} value="followingAll" selected={scope} onSelect={setScope}/>}
         <div style={{marginTop:16}}>
           <Button variant="primary" size="small" fullWidth onClick={handleConfirm}>Save changes</Button>
           <div style={{marginTop:12}}><Button variant="default" size="small" fullWidth onClick={onClose}>Close</Button></div>

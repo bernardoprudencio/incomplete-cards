@@ -367,6 +367,26 @@ export default function SummarySheet({ savedUnits, draftUnits, pets, onConfirm, 
     }
   }
 
+  // Pre-consume skips that are covered by a "rule ended" modified entry (same unit, same date).
+  // endRuleFromDate() both sets repeatEndDate and adds the date to skippedKeys — the refund
+  // belongs to the rule row, not a separate skip row.
+  const endedRuleRefunds = new Map() // draft.id → refundAmount
+  modified
+    .filter(({ draft }) => !consumedModifiedIds.has(draft.id))
+    .forEach(({ saved, draft }) => {
+      if (!saved.repeatEndDate && draft.repeatEndDate) {
+        const matchedSkip = skipped.find(({ unit: su, dk }) =>
+          !consumedSkipKeys.has(`${su.id}-${dk}`) &&
+          su.id === draft.id &&
+          dk === draft.repeatEndDate
+        )
+        if (matchedSkip) {
+          consumedSkipKeys.add(`${matchedSkip.unit.id}-${matchedSkip.dk}`)
+          endedRuleRefunds.set(draft.id, matchedSkip.refundAmount || 0)
+        }
+      }
+    })
+
   // Semantic change count: informational "continues" rows don't count as a change
   const remainingCount = (added.length - consumedAddedIds.size)
     + removed.length
@@ -585,12 +605,13 @@ export default function SummarySheet({ savedUnits, draftUnits, pets, onConfirm, 
       .filter(({ draft }) => !consumedModifiedIds.has(draft.id))
       .map(({ saved, draft }) => {
         const isEnded = !saved.repeatEndDate && !!draft.repeatEndDate
+        const endedRefund = endedRuleRefunds.get(draft.id) || 0
         return {
           key: `mod-${draft.id}`,
           date: draft.repeatEndDate ? parseDate(draft.repeatEndDate) : parseDate(draft.startDate),
           label: isEnded ? `Removed ${fmtTime(draft.startTime)} rule` : `Updated ${fmtTime(draft.startTime)} rule`,
           sublabel: isEnded
-            ? `${shortRuleLabel(draft)}, ends ${fmtDateLong(parseDate(draft.repeatEndDate))}`
+            ? `${shortRuleLabel(draft)}, ends ${fmtDateLong(parseDate(draft.repeatEndDate))}${refundSuffix(endedRefund)}`
             : `${shortRuleLabel(draft)}${draft.repeatEndDate ? `, ends ${fmtDate(parseDate(draft.repeatEndDate))}` : ''}`,
         }
       }),
