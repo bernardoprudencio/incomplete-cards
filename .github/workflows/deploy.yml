@@ -8,6 +8,7 @@ on:
       - ongoing-relationships
       - user-testing-ongoing-relationships-v1
       - claude/trusting-banzai
+      - claude/modest-visvesvaraya
 
 permissions:
   contents: write
@@ -88,4 +89,17 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./dist
           destination_dir: trusting-banzai
+          keep_files: true
+
+      - name: Build (claude/modest-visvesvaraya)
+        if: github.ref == 'refs/heads/claude/modest-visvesvaraya'
+        run: VITE_BASE=/prototype/modest-visvesvaraya/ npm run build
+
+      - name: Deploy claude/modest-visvesvaraya → subdirectory
+        if: github.ref == 'refs/heads/claude/modest-visvesvaraya'
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
+          destination_dir: modest-visvesvaraya
           keep_files: true
