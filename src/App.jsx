@@ -8,6 +8,7 @@ import HomeScreen from './screens/HomeScreen'
 import InboxScreen from './screens/InboxScreen'
 import ConversationScreen from './screens/ConversationScreen'
 import ScheduleOverlay from './screens/ScheduleOverlay'
+import ManageWeeklySchedulesScreen from './screens/ManageWeeklySchedulesScreen'
 import { petImages } from './assets/images'
 import { useAppContext } from './context/AppContext'
 
@@ -96,6 +97,15 @@ export default function App() {
         <Route path="/conversation/:ownerId/schedule" element={
           <SlideOverlay zIndex={20}>
             <ScheduleOverlay />
+          </SlideOverlay>
+        } />
+      </Routes>
+
+      {/* ── Manage weekly schedules overlay ── */}
+      <Routes>
+        <Route path="/manage-weekly" element={
+          <SlideOverlay zIndex={10}>
+            <ManageWeeklySchedulesScreen />
           </SlideOverlay>
         } />
       </Routes>

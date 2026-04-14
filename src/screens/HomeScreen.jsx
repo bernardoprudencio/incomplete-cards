@@ -105,9 +105,9 @@ export default function HomeScreen({ onOpenActionSheet, onOpenReviewSheet, onOpe
               </div>
             )
           })}
-          <div style={{ background: colors.background.primary, borderRadius: 8, boxShadow: shadows.low, padding: 20, display: 'flex', gap: 12, alignItems: 'center' }}>
+          <div onClick={() => navigate('/manage-weekly')} style={{ background: colors.background.primary, borderRadius: 8, boxShadow: shadows.low, padding: 20, display: 'flex', gap: 12, alignItems: 'center', cursor: 'pointer' }}>
             <div style={{ flexShrink: 0 }}><EditIcon /></div>
-            <p style={{ ...textStyles.heading100, color: colors.text.primary, margin: 0, flex: 1 }}>Manage weekly care for this week</p>
+            <p style={{ ...textStyles.heading100, color: colors.text.primary, margin: 0, flex: 1 }}>Manage weekly schedules</p>
           </div>
         </div>
 

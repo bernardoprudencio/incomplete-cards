@@ -69,7 +69,7 @@ export const getIncompleteCards = () => {
   const lastMonday = new Date(thisMonday)
   lastMonday.setDate(thisMonday.getDate() - 7)
 
-  return Object.values(OWNERS).flatMap(owner => {
+  return [OWNERS.sarah].flatMap(owner => {
     const lastWeekOccs = owner.template
       .map(t => {
         const date = new Date(lastMonday)
