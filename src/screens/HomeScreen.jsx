@@ -17,6 +17,10 @@ export default function HomeScreen({ resolvedCards, onOpenActionSheet, onOpenRev
   const visibleCards = INCOMPLETE_CARDS.filter(c => !resolvedCards[c.id])
   const hasIncomplete = visibleCards.length > 0
 
+  // Hide the deck entry point when the prototype is rendered inside an
+  // iframe (e.g. the demo slide of the deck itself) to avoid recursion.
+  const inEmbed = typeof window !== 'undefined' && window.self !== window.top
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: colors.white }}>
       {/* ─── Header ─── */}
@@ -37,27 +41,29 @@ export default function HomeScreen({ resolvedCards, onOpenActionSheet, onOpenRev
       <div className="hide-scrollbar" style={{ flex: 1, overflowY: 'auto', padding: '24px 16px' }}>
         <p style={{ fontFamily: typography.fontFamily, fontSize: 14, color: colors.tertiary, margin: '0 0 8px' }}>Updated at {loadTime}</p>
 
-        {/* ─── Deck entry row ─── */}
-        <button
-          onClick={onOpenDeck}
-          style={{
-            width: '100%', display: 'flex', alignItems: 'center', gap: 12,
-            padding: '14px 16px', marginBottom: 8,
-            background: colors.yellow100, border: `1px solid ${colors.yellow200}`,
-            borderRadius: 8, cursor: 'pointer', textAlign: 'left',
-            fontFamily: typography.fontFamily,
-          }}
-        >
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <p style={{ fontWeight: 700, fontSize: 14, color: colors.primary, margin: 0 }}>
-              Project review
-            </p>
-            <p style={{ fontSize: 12, color: colors.tertiary, margin: '2px 0 0' }}>
-              Open the Product &amp; Design leadership deck
-            </p>
-          </div>
-          <span style={{ fontSize: 18, color: colors.primary, flexShrink: 0 }}>→</span>
-        </button>
+        {/* ─── Deck entry row (hidden when embedded inside the deck) ─── */}
+        {!inEmbed && (
+          <button
+            onClick={onOpenDeck}
+            style={{
+              width: '100%', display: 'flex', alignItems: 'center', gap: 12,
+              padding: '14px 16px', marginBottom: 8,
+              background: colors.yellow100, border: `1px solid ${colors.yellow200}`,
+              borderRadius: 8, cursor: 'pointer', textAlign: 'left',
+              fontFamily: typography.fontFamily,
+            }}
+          >
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <p style={{ fontWeight: 700, fontSize: 14, color: colors.primary, margin: 0 }}>
+                Project review
+              </p>
+              <p style={{ fontSize: 12, color: colors.tertiary, margin: '2px 0 0' }}>
+                Open the Product &amp; Design leadership deck
+              </p>
+            </div>
+            <span style={{ fontSize: 18, color: colors.primary, flexShrink: 0 }}>→</span>
+          </button>
+        )}
 
         {/* ─── Incomplete section ─── */}
         {hasIncomplete && (

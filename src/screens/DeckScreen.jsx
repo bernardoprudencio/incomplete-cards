@@ -1,5 +1,8 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { colors, typography } from '../tokens'
+
+const STAGE_W = 1600
+const STAGE_H = 900
 
 const stage = {
   bg: '#0B1220',
@@ -332,36 +335,56 @@ function SlideWalkthrough() {
 
 function SlideDemo() {
   const src = import.meta.env.BASE_URL
+  const [reloadKey, setReloadKey] = useState(0)
   return (
-    <div style={{ display: 'flex', gap: 40, height: '100%', alignItems: 'stretch', flexWrap: 'wrap' }}>
-      {/* Phone-shaped iframe */}
-      <div style={{
-        flexShrink: 0,
-        width: 375,
-        height: '100%',
-        background: '#1F2124',
-        borderRadius: 32, overflow: 'hidden',
-        border: '8px solid #1F2124',
-        boxShadow: '0 20px 50px rgba(0,0,0,0.35)',
-      }}>
-        <iframe
-          src={src}
-          title="Incomplete Cards prototype"
+    <div style={{ display: 'flex', gap: 56, height: '100%', alignItems: 'stretch' }}>
+      {/* Phone column — frame + reload control under it */}
+      <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
+        {/* Phone-shaped iframe — real iPhone proportions */}
+        <div style={{
+          width: 390,
+          height: 780,
+          background: '#1F2124',
+          borderRadius: 40, overflow: 'hidden',
+          border: '10px solid #1F2124',
+          boxShadow: '0 30px 60px rgba(0,0,0,0.4)',
+        }}>
+          <iframe
+            key={reloadKey}
+            src={src}
+            title="Incomplete Cards prototype"
+            style={{
+              width: '100%', height: '100%',
+              border: 0, background: '#fff', display: 'block',
+            }}
+          />
+        </div>
+        <button
+          onClick={() => setReloadKey(k => k + 1)}
           style={{
-            width: '100%', height: '100%',
-            border: 0, background: '#fff', display: 'block',
+            background: stage.card,
+            border: `1px solid ${stage.rule}`,
+            borderRadius: 99,
+            padding: '8px 18px',
+            display: 'inline-flex', alignItems: 'center', gap: 8,
+            fontFamily: typography.fontFamily, fontWeight: 600, fontSize: 14,
+            color: stage.ink, cursor: 'pointer',
           }}
-        />
+          title="Reload the prototype without restarting the deck"
+        >
+          <span style={{ fontSize: 16, lineHeight: 1 }}>↻</span>
+          Reload prototype
+        </button>
       </div>
 
       {/* Right-side talking points */}
       <div style={{
-        flex: 1, minWidth: 280,
-        display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 24,
+        flex: 1, minWidth: 0,
+        display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 32,
       }}>
         <div>
           <p style={eyebrow}>Live demo</p>
-          <h2 style={{ ...titleFont, fontSize: 38, lineHeight: 1.1, margin: '8px 0 0' }}>
+          <h2 style={{ ...titleFont, fontSize: 48, lineHeight: 1.1, margin: '8px 0 0' }}>
             Try the flow
           </h2>
         </div>
@@ -370,8 +393,9 @@ function SlideDemo() {
           '"Did the walk happen?" — pick Yes or No, then Submit.',
           'See the system message land in the conversation.',
         ]} />
-        <p style={{ ...muted, fontSize: 14, margin: 0 }}>
+        <p style={{ ...muted, fontSize: 16, margin: 0 }}>
           The phone on the left is the live prototype — interact directly.
+          Use Reload to start over without leaving the deck.
         </p>
       </div>
     </div>
@@ -498,8 +522,24 @@ const SLIDES = [
 
 export default function DeckScreen({ onClose }) {
   const [i, setI] = useState(0)
+  const [scale, setScale] = useState(1)
+  const stageRef = useRef(null)
   const total = SLIDES.length
   const Slide = SLIDES[i]
+
+  useEffect(() => {
+    const el = stageRef.current
+    if (!el) return
+    const calc = () => {
+      const { width, height } = el.getBoundingClientRect()
+      if (width <= 0 || height <= 0) return
+      setScale(Math.min(width / STAGE_W, height / STAGE_H))
+    }
+    calc()
+    const ro = new ResizeObserver(calc)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
 
   useEffect(() => {
     const onKey = (e) => {
@@ -551,19 +591,25 @@ export default function DeckScreen({ onClose }) {
         }}>Exit · Esc</button>
       </div>
 
-      {/* Stage */}
-      <div style={{
+      {/* Stage — canonical-canvas + scale-to-fit so all slide content
+          (text, phone, padding) shrinks proportionally on smaller viewports */}
+      <div ref={stageRef} style={{
         flex: 1, minHeight: 0, padding: '0 24px',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        position: 'relative',
+        overflow: 'hidden',
       }}>
         <div style={{
-          width: '100%', maxWidth: 1200, aspectRatio: '16 / 9',
-          maxHeight: 'calc(100vh - 140px)',
-          background: stage.card, borderRadius: 16,
-          padding: '56px 64px', boxSizing: 'border-box',
+          position: 'absolute',
+          left: '50%', top: '50%',
+          width: STAGE_W, height: STAGE_H,
+          marginLeft: -STAGE_W / 2, marginTop: -STAGE_H / 2,
+          background: stage.card, borderRadius: 20,
+          padding: '64px 80px', boxSizing: 'border-box',
           boxShadow: '0 30px 80px rgba(0,0,0,0.5)',
           display: 'flex', flexDirection: 'column',
           overflow: 'hidden',
+          transform: `scale(${scale})`,
+          transformOrigin: 'center center',
         }}>
           <Slide />
         </div>
