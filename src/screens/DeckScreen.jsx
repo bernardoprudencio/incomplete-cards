@@ -120,7 +120,7 @@ function SlideNumbers() {
       <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
         <Stat value="57%" label="of providers had at least one delayed payment in the last 6 months" />
         <Stat value="~2.6k" label="providers per week are paid two weeks late after a missed Rover Card" />
-        <Stat value="~80%" label="of delayed payments only resolve after a full 2-week wait" />
+        <Stat value="~50%" label="of delayed payments only resolve after a full 2-week wait" />
         <Stat value="~10%" label="of weekly recurring stays have ≥1 missing Rover Card (up to 20% at Christmas)" />
       </div>
       <p style={{ ...muted, marginTop: 24 }}>Source: Mode dashboard · last 6 months</p>
